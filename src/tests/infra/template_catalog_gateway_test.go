@@ -1,0 +1,86 @@
+package infra_test
+
+import (
+	"context"
+	"os"
+	"path/filepath"
+	"testing"
+
+	infratemplate "github.com/heimdall-app/heimdall/src/infra/template"
+)
+
+func TestTemplateCatalogGatewayLoad(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	toolsDir := filepath.Join(root, "tools")
+	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	skillA := "type: skill\ncategories:\n  - software-architecture\nname: skill-a\ndescription: Skill A description\ninstructions: |\n  Execute Skill A.\n"
+	if err := os.WriteFile(filepath.Join(toolsDir, "skill-a.yaml"), []byte(skillA), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	skillB := "type: skill\ncategories:\n  - documentation\nname: skill-b\ndescription: Skill B description\ninstructions: |\n  Execute Skill B.\n"
+	if err := os.WriteFile(filepath.Join(toolsDir, "skill-b.yaml"), []byte(skillB), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	assistant := "type: assitent\ncategories:\n  - documentation\nid: test-assistant\nname: Test Assistant\ndescription: desc\ninstructions: This instructions text is long enough to pass validation.\nskills:\n  - skill-a\n"
+	if err := os.WriteFile(filepath.Join(toolsDir, "test-assistant.yaml"), []byte(assistant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(root, "AGENTS.md"), []byte("agents"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	gateway := infratemplate.NewCatalogGateway(root)
+	catalog, err := gateway.Load(context.Background())
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(catalog.Skills) != 2 {
+		t.Fatalf("expected 2 skills, got %d", len(catalog.Skills))
+	}
+	if catalog.Skills[0].Contract == nil {
+		t.Fatal("expected skill-a contract to be loaded")
+	}
+	if catalog.Skills[0].Contract.Name != "skill-a" {
+		t.Fatalf("expected contract name skill-a, got %q", catalog.Skills[0].Contract.Name)
+	}
+	if catalog.Skills[1].Contract == nil {
+		t.Fatal("expected skill-b contract to be loaded")
+	}
+	if len(catalog.Skills[0].Categories) == 0 || catalog.Skills[0].Categories[0] != "software-architecture" {
+		t.Fatalf("expected skill categories to be loaded, got %#v", catalog.Skills[0].Categories)
+	}
+
+	if len(catalog.Assistants) != 1 {
+		t.Fatalf("expected 1 assistant, got %d", len(catalog.Assistants))
+	}
+
+	if catalog.Assistants[0].ID != "test-assistant" {
+		t.Fatalf("expected assistant id test-assistant, got %q", catalog.Assistants[0].ID)
+	}
+
+	if catalog.Assistants[0].Name != "Test Assistant" {
+		t.Fatalf("expected assistant name Test Assistant, got %q", catalog.Assistants[0].Name)
+	}
+
+	if catalog.Assistants[0].Description != "desc" {
+		t.Fatalf("expected assistant description desc, got %q", catalog.Assistants[0].Description)
+	}
+
+	if len(catalog.Assistants[0].Skills) != 1 || catalog.Assistants[0].Skills[0] != "skill-a" {
+		t.Fatalf("expected assistant skills to be loaded, got %#v", catalog.Assistants[0].Skills)
+	}
+	if len(catalog.Assistants[0].Categories) != 1 || catalog.Assistants[0].Categories[0] != "documentation" {
+		t.Fatalf("expected assistant categories to be loaded, got %#v", catalog.Assistants[0].Categories)
+	}
+
+	if catalog.AgentsTemplatePath == "" {
+		t.Fatal("expected AGENTS template path to be set")
+	}
+}

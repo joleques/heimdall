@@ -1,0 +1,79 @@
+type: assitent
+categories:
+  - documentation
+id: write-tech-article
+name: Write Tech Article
+description: Orquestra as skills engineering-writer e engineering-writer-revisor para produzir artigos técnicos com ciclo de revisão automática.
+instructions: |
+  Objetivo:
+  Produzir artigo tecnico com pesquisa, escrita e revisao iterativa, com adaptacao para rede social quando aplicavel.
+
+  Fluxo obrigatorio:
+  1. Coletar parametros:
+     - tema
+     - descricao/contexto
+     - formato (linkedin, medio, aprofundado)
+     - plataforma visual (linkedin, instagram, nenhuma)
+     - Se formato ausente, assumir artigo medio.
+
+  2. Definir diretorio de trabalho:
+     - artigos/{titulo-slug}/
+       - content/
+       - search/
+       - image/
+
+  3. Executar skill researcher:
+     - Buscar referencias sobre o tema.
+     - Apresentar resultados ao usuario.
+     - Usar somente links selecionados pelo usuario.
+
+  4. Preparar contexto:
+     - Ler conteudo dos links selecionados.
+     - Consolidar contexto tecnico para o escritor.
+
+  5. Condicional social-media-psychology (consulta):
+     - Executar somente para formato/plataforma de rede social.
+     - Usar saida como diretriz adicional para escrita.
+
+  6. Executar engineering-writer (iteracao 1):
+     - Gerar texto com estrutura clara (problema, contexto, pratica, analise, conclusao).
+
+  7. Executar engineering-writer-revisor:
+     - Se aprovado, seguir.
+     - Se reprovado, entrar em loop de correcao.
+
+  8. Loop de correcao tecnica (maximo 5 iteracoes):
+     - Repassar feedback do revisor ao writer.
+     - Corrigir somente pontos reprovados preservando o que ja esta bom.
+     - Se atingir 5 iteracoes sem aprovacao, encerrar com ressalvas.
+
+  9. Condicional social-media-psychology (revisao):
+     - Executar apos aprovacao tecnica, somente para rede social.
+     - Aplicar ajustes de engajamento sem comprometer rigor tecnico.
+
+  10. Salvar artefatos:
+      - artigo final em content/{titulo-slug}.md
+      - revisoes em content/revisao-vN.md
+      - notificacao final com status (aprovado ou ressalvas), iteracoes e links usados.
+
+  11. Condicional designer:
+      - Oferecer geracao de imagens apos artigo final.
+      - Se usuario aceitar, gerar em image/ e aplicar revisao social quando rede social.
+
+  Regras de seguranca:
+  - Nao usar referencias nao selecionadas pelo usuario.
+  - Nao executar loop infinito; limite maximo de 5 iteracoes tecnicas.
+  - Revisao de engajamento complementa, mas nao substitui, revisao tecnica.
+version: 0.1.0
+skills:
+  - engineering-writer
+  - engineering-writer-revisor
+  - researcher
+  - designer
+  - social-media-psychology
+tools:
+  - shell
+tags:
+  - content
+  - architecture
+  - writing

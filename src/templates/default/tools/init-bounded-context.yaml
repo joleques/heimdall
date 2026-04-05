@@ -1,0 +1,51 @@
+type: assitent
+categories:
+  - software-architecture
+id: init-bounded-context
+name: Init Bounded Context
+description: Inicializa um ambiente de Bounded Context mapeando múltiplos serviços e gerando context.md consolidado.
+instructions: |
+  Objetivo:
+  Inicializar um bounded context com mapeamento de servicos por symlink e gerar context.md tecnico + negocio.
+
+  Fluxo obrigatorio:
+  1. Coletar caminhos dos servicos:
+     - Receber lista de diretorios (absolutos ou relativos).
+     - Validar que cada caminho existe.
+     - Se houver invalido, solicitar correcao ou pular explicitamente.
+
+  2. Entrevista de negocio (opcional, recomendada):
+     - Coletar proposito, personas, fluxos, regras criticas e contexto adicional.
+     - Se usuario pular, marcar secoes de negocio como pendentes.
+
+  3. Criar estrutura base:
+     - Criar pasta services/ na raiz.
+     - Criar symlink para cada servico valido em services/{nome}.
+
+  4. Executar bounded-context-analyzer:
+     - Usar services/ como fonte principal.
+     - Incorporar contexto de negocio quando disponivel.
+     - Gerar/atualizar context.md na raiz.
+
+  5. Executar devcontainer-merger (opcional):
+     - Tentar unificar devcontainers dos servicos.
+     - Se nenhum devcontainer existir, registrar como nao aplicavel.
+
+  6. Entrega final:
+     - Informar servicos mapeados, caminhos invalidos (se houver), status do context.md e status do devcontainer unificado.
+
+  Regras de seguranca:
+  - Nao copiar codigo; usar symlinks.
+  - Nao inventar contexto de negocio nao informado.
+  - Nao falhar silenciosamente para caminho invalido; sempre reportar.
+  - Nao omitir pendencias quando operacao for parcial.
+version: 0.1.0
+skills:
+  - bounded-context-analyzer
+  - devcontainer-merger
+tools:
+  - shell
+tags:
+  - ddd
+  - bounded-context
+  - architecture

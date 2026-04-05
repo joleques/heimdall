@@ -1,0 +1,49 @@
+{
+  "name": "heimdall-app",
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile.dev"
+  },
+  "workspaceFolder": "/workspaces/heimdall-app",
+  "runArgs": [
+    "--cap-add=SYS_PTRACE",
+    "--security-opt",
+    "seccomp=unconfined",
+    "-v",
+    "${env:HOME}/.ssh:/home/vscode/.ssh:ro"
+  ],
+  "appPort": [
+    "8080:8080",
+    "9090:9090"
+  ],
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "go.useLanguageServer": true
+      },
+      "extensions": [
+        "streetsidesoftware.code-spell-checker",
+        "davidanson.vscode-markdownlint",
+        "shardulm94.trailing-spaces",
+        "IBM.output-colorizer",
+        "aldijav.golangwithdidi",
+        "golang.go",
+        "neonxp.gotools",
+        "honnamkuan.golang-snippets",
+        "Equinusocio.vsc-material-theme-icons",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker-portuguese-brazilian",
+        "tal7aouy.icons",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.makefile-tools",
+        "jlcodes.antigravity-cockpit",
+        "firsttris.vscode-jest-runner",
+        "marp-team.marp-vscode",
+        "openai.chatgpt"
+      ]
+    }
+  },
+  "postStartCommand": [
+    "make download install-dependencies"
+  ]
+}

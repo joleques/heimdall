@@ -1,0 +1,26 @@
+FROM mcr.microsoft.com/devcontainers/go:1.25-bookworm
+
+WORKDIR /workspaces/heimdall-app
+
+# Remove Yarn repository with expired GPG key (comes pre-configured in base image)
+RUN rm -f /etc/apt/sources.list.d/yarn.list 2>/dev/null || true
+
+RUN apt-get update && apt-get install -y \
+    protobuf-compiler \
+    iputils-ping
+
+# mockgen
+RUN go install github.com/golang/mock/mockgen@v1.6.0
+
+# Node.js 24
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - && \
+    apt-get install -y nodejs
+
+RUN npm install -g typescript
+
+RUN git config --global --add safe.directory '*'
+
+RUN go version && node -v && npm -v
+
+# Fix permissions for vscode user
+RUN chown -R vscode:vscode /go

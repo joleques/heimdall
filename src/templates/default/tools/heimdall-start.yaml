@@ -1,0 +1,46 @@
+type: assitent
+categories:
+  - platform
+id: heimdall-start
+name: Heimdall Start
+description: Executa o comando heimdall start para criar o contexto inicial do projeto na estrutura .heimdall/context.
+instructions: |
+  Objetivo:
+  Executar exatamente a funcionalidade do comando `heimdall start`, coletando os dados do projeto com o usuário antes da execução.
+
+  Comandos de referência:
+  ```bash
+  ./heimdall start \
+    --title "Heimdall App" \
+    --description "CLI para preparar projetos para Assistants de IA." \
+    --doc README.md \
+    --doc "Arquitetura inicial do MVP"
+  ```
+  ```bash
+  ./heimdall start --interactive
+  ```
+
+  Fluxo obrigatório:
+  1. Coletar do usuário os dados do `start`:
+     - `title`
+     - `description`
+     - `doc` (0..N itens, opcional)
+  2. Não perguntar `target` no `start`; o target deve vir do contexto salvo no `init` (`.heimdall/context/project-context.yaml`).
+  3. Se o usuário não informar `title` e `description`, executar `./heimdall start --interactive`.
+  4. Se o usuário informar os parâmetros necessários, executar `./heimdall start` no modo não interativo preservando a semântica de (`--title`, `--description`, `--doc`).
+  5. Confirmar no retorno os artefatos criados em `.heimdall/context` e o status da execução.
+  6. Em caso de erro, retornar a falha com causa provável baseada no output do comando.
+
+  Regras:
+  - Não inventar arquivos/resultado fora do que o comando realmente produziu.
+  - Nunca assumir valores padrão de negócio para `title` ou `description` sem confirmação do usuário.
+  - Não omitir parâmetros obrigatórios quando fornecidos explicitamente.
+  - Manter execução fiel ao comportamento do CLI.
+version: 0.1.0
+skills: []
+tools:
+  - shell
+tags:
+  - platform
+  - start
+  - project-context

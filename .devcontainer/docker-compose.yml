@@ -1,0 +1,52 @@
+version: "3.8"
+
+networks:
+  hermes-net:
+
+
+services:
+  dev:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile.dev
+    container_name: umovme-hermes_dev
+    command: sleep infinity
+    networks:
+      - hermes-net
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp=unconfined
+    user: 1000:1000
+
+    # depends_on:
+    #   qdrant:
+    #     condition: service_started
+
+    ports:
+      - "8080:8080"
+      - "9090:9090"
+    # volumes:
+    #   - ../:/workspaces:cached
+    #   - qdrant_storage:/qdrant/storage
+    #   - ${HOME}/.ssh:/home/vscode/.ssh:ro
+    #   # NECESSÁRIO para acessar o Docker Host dentro do DevContainer
+    #   - /var/run/docker.sock:/var/run/docker.sock
+
+    # qdrant:
+    #   container_name: qdrant_local
+    #   image: qdrant/qdrant:v1.16
+    #   networks:
+    #     - hermes-net
+    #   ports:
+    #     - "6333:6333"
+    #     - "6334:6334"
+    #   volumes:
+    #     - qdrant_storage:/qdrant/storage
+
+
+
+
+
+    # volumes:
+    #   qdrant_storage: {}
