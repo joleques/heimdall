@@ -52,7 +52,7 @@ src/
 
 ## Fluxo de uso
 
-### 1. Inicializar um target
+### 1. Inicializar um target via terminal
 
 Exemplo com `codex`:
 
