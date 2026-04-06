@@ -21,31 +21,52 @@ func NewCatalogGateway(templateRoot string) CatalogGateway {
 	return CatalogGateway{TemplateRoot: templateRoot}
 }
 
-func (g CatalogGateway) Load(_ context.Context) (usecase.Catalog, error) {
-	skills, assistants, err := g.loadTools()
+func (g CatalogGateway) Load(_ context.Context, outputDir string) (usecase.Catalog, error) {
+	clientRoot := resolveClientTemplateRoot(outputDir)
+	if clientRoot != "" {
+		catalog, err := g.loadFromRoot(clientRoot)
+		if err != nil {
+			return usecase.Catalog{}, err
+		}
+		if len(catalog.Skills) > 0 || len(catalog.Assistants) > 0 {
+			return catalog, nil
+		}
+	}
+
+	return g.loadFromRoot(g.TemplateRoot)
+}
+
+func (g CatalogGateway) loadFromRoot(root string) (usecase.Catalog, error) {
+	templateRoot := strings.TrimSpace(root)
+	if templateRoot == "" {
+		return usecase.Catalog{}, fmt.Errorf("template root is required")
+	}
+
+	rootGateway := CatalogGateway{TemplateRoot: templateRoot}
+	skills, assistants, err := rootGateway.loadTools()
 	if err != nil {
 		return usecase.Catalog{}, err
 	}
 
 	if len(skills) == 0 && len(assistants) == 0 {
-		skills, err = g.loadLegacySkills()
+		skills, err = rootGateway.loadLegacySkills()
 		if err != nil {
 			return usecase.Catalog{}, err
 		}
 
-		assistants, err = g.loadLegacyAssistants()
+		assistants, err = rootGateway.loadLegacyAssistants()
 		if err != nil {
 			return usecase.Catalog{}, err
 		}
 	}
 
-	agentsTemplatePath := filepath.Join(g.TemplateRoot, "AGENTS.md")
+	agentsTemplatePath := filepath.Join(templateRoot, "AGENTS.md")
 	if _, err := os.Stat(agentsTemplatePath); err != nil {
 		if !os.IsNotExist(err) {
 			return usecase.Catalog{}, fmt.Errorf("read AGENTS template: %w", err)
 		}
 
-		legacyAgentsPath := filepath.Join(g.TemplateRoot, ".agent", "AGENTS.md")
+		legacyAgentsPath := filepath.Join(templateRoot, ".agent", "AGENTS.md")
 		if _, legacyErr := os.Stat(legacyAgentsPath); legacyErr != nil {
 			if !os.IsNotExist(legacyErr) {
 				return usecase.Catalog{}, fmt.Errorf("read AGENTS template: %w", legacyErr)
@@ -61,6 +82,21 @@ func (g CatalogGateway) Load(_ context.Context) (usecase.Catalog, error) {
 		Assistants:         assistants,
 		AgentsTemplatePath: agentsTemplatePath,
 	}, nil
+}
+
+func resolveClientTemplateRoot(outputDir string) string {
+	base := strings.TrimSpace(outputDir)
+	if base == "" {
+		base = "."
+	}
+
+	root := filepath.Join(base, ".heimdall", "template")
+	info, err := os.Stat(root)
+	if err != nil || !info.IsDir() {
+		return ""
+	}
+
+	return root
 }
 
 func (g CatalogGateway) loadLegacySkills() ([]usecase.SkillAsset, error) {

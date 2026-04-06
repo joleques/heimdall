@@ -36,7 +36,7 @@ func TestTemplateCatalogGatewayLoad(t *testing.T) {
 	}
 
 	gateway := infratemplate.NewCatalogGateway(root)
-	catalog, err := gateway.Load(context.Background())
+	catalog, err := gateway.Load(context.Background(), "")
 	if err != nil {
 		t.Fatalf("expected no error, got %v", err)
 	}
@@ -82,5 +82,63 @@ func TestTemplateCatalogGatewayLoad(t *testing.T) {
 
 	if catalog.AgentsTemplatePath == "" {
 		t.Fatal("expected AGENTS template path to be set")
+	}
+}
+
+func TestTemplateCatalogGatewayLoadPrefersClientTemplate(t *testing.T) {
+	t.Parallel()
+
+	runtimeRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(runtimeRoot, "tools"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	runtimeAssistant := "type: assitent\ncategories:\n  - platform\nid: runtime-assistant\nname: Runtime Assistant\ndescription: desc\ninstructions: Runtime instructions long enough for validation in tests.\nskills: []\n"
+	if err := os.WriteFile(filepath.Join(runtimeRoot, "tools", "runtime-assistant.yaml"), []byte(runtimeAssistant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	clientRoot := t.TempDir()
+	clientToolsDir := filepath.Join(clientRoot, ".heimdall", "template", "tools")
+	if err := os.MkdirAll(clientToolsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	clientAssistant := "type: assitent\ncategories:\n  - platform\nid: client-assistant\nname: Client Assistant\ndescription: desc\ninstructions: Client instructions long enough for validation in tests.\nskills: []\n"
+	if err := os.WriteFile(filepath.Join(clientToolsDir, "client-assistant.yaml"), []byte(clientAssistant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	gateway := infratemplate.NewCatalogGateway(runtimeRoot)
+	catalog, err := gateway.Load(context.Background(), clientRoot)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(catalog.Assistants) != 1 || catalog.Assistants[0].ID != "client-assistant" {
+		t.Fatalf("expected catalog from client template, got %#v", catalog.Assistants)
+	}
+}
+
+func TestTemplateCatalogGatewayLoadFallsBackToRuntimeWhenClientTemplateMissing(t *testing.T) {
+	t.Parallel()
+
+	runtimeRoot := t.TempDir()
+	runtimeToolsDir := filepath.Join(runtimeRoot, "tools")
+	if err := os.MkdirAll(runtimeToolsDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	runtimeAssistant := "type: assitent\ncategories:\n  - platform\nid: runtime-assistant\nname: Runtime Assistant\ndescription: desc\ninstructions: Runtime instructions long enough for validation in tests.\nskills: []\n"
+	if err := os.WriteFile(filepath.Join(runtimeToolsDir, "runtime-assistant.yaml"), []byte(runtimeAssistant), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	clientRoot := t.TempDir()
+	gateway := infratemplate.NewCatalogGateway(runtimeRoot)
+	catalog, err := gateway.Load(context.Background(), clientRoot)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(catalog.Assistants) != 1 || catalog.Assistants[0].ID != "runtime-assistant" {
+		t.Fatalf("expected fallback catalog from runtime template, got %#v", catalog.Assistants)
 	}
 }

@@ -39,7 +39,7 @@ type Catalog struct {
 }
 
 type CatalogGateway interface {
-	Load(ctx context.Context) (Catalog, error)
+	Load(ctx context.Context, outputDir string) (Catalog, error)
 }
 
 type InstallGateway interface {
@@ -74,9 +74,12 @@ func (uc InstallAssistantUseCase) Execute(ctx context.Context, request InstallRe
 		}
 
 		request.Target = projectContext.Target
+		if strings.TrimSpace(request.OutputDir) == "" && strings.TrimSpace(projectContext.ProjectRoot) != "" {
+			request.OutputDir = projectContext.ProjectRoot
+		}
 	}
 
-	catalog, err := uc.catalog.Load(ctx)
+	catalog, err := uc.catalog.Load(ctx, request.OutputDir)
 	if err != nil {
 		return InstallResult{}, err
 	}

@@ -41,11 +41,23 @@ func TestParseListLibraryArgs(t *testing.T) {
 		t.Fatalf("expected category documentation, got %q", parsed.Request.Category)
 	}
 
+	parsed, err = application.ParseListLibraryArgs([]string{"list-lib", "--output", "/tmp/client"})
+	if err != nil {
+		t.Fatalf("expected valid list-lib --output args, got %v", err)
+	}
+	if parsed.Request.OutputDir != "/tmp/client" {
+		t.Fatalf("expected output /tmp/client, got %q", parsed.Request.OutputDir)
+	}
+
 	if _, err := application.ParseListLibraryArgs([]string{"list-lib", "--wat"}); err == nil {
 		t.Fatal("expected invalid list-lib args to return error")
 	}
 
 	if _, err := application.ParseListLibraryArgs([]string{"list-lib", "--category"}); err == nil {
 		t.Fatal("expected missing --category value to return error")
+	}
+
+	if _, err := application.ParseListLibraryArgs([]string{"list-lib", "--output"}); err == nil {
+		t.Fatal("expected missing --output value to return error")
 	}
 }

@@ -42,7 +42,13 @@ func TestFilesystemGatewaySaveProjectContext(t *testing.T) {
 		t.Fatalf("expected manifest to exist, got %v", err)
 	}
 
-	for _, fragment := range []string{"target: codex", "title: Heimdall", "stored_path: docs/01-README.md", "kind: note"} {
+	for _, fragment := range []string{
+		"target: codex",
+		"project_root: " + outputDir,
+		"title: Heimdall",
+		"stored_path: docs/01-README.md",
+		"kind: note",
+	} {
 		if !strings.Contains(string(content), fragment) {
 			t.Fatalf("expected manifest to contain %q, got %s", fragment, string(content))
 		}
@@ -161,6 +167,9 @@ func TestFilesystemGatewayLoadProjectContext(t *testing.T) {
 	if projectContext.Target != "cursor" {
 		t.Fatalf("expected target cursor, got %q", projectContext.Target)
 	}
+	if projectContext.ProjectRoot != outputDir {
+		t.Fatalf("expected project root %q, got %q", outputDir, projectContext.ProjectRoot)
+	}
 }
 
 func TestFilesystemGatewayLoadProjectContextWithOnlyTarget(t *testing.T) {
@@ -182,5 +191,8 @@ func TestFilesystemGatewayLoadProjectContextWithOnlyTarget(t *testing.T) {
 
 	if projectContext.Target != "codex" {
 		t.Fatalf("expected target codex, got %q", projectContext.Target)
+	}
+	if projectContext.ProjectRoot != outputDir {
+		t.Fatalf("expected project root fallback %q, got %q", outputDir, projectContext.ProjectRoot)
 	}
 }

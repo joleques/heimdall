@@ -19,6 +19,11 @@ type FilesystemGateway struct {
 	templateSourceDir  string
 }
 
+type managedToolsState struct {
+	Skills     []string `yaml:"skills"`
+	Assistants []string `yaml:"assistants"`
+}
+
 func NewFilesystemGateway(agentsTemplatePath ...string) FilesystemGateway {
 	path := ""
 	if len(agentsTemplatePath) > 0 {
@@ -62,10 +67,14 @@ func (g FilesystemGateway) LoadProjectContext(_ context.Context, outputDir strin
 
 	context := domain.ProjectContext{
 		Target:        manifest.Target,
+		ProjectRoot:   manifest.ProjectRoot,
 		Title:         manifest.Title,
 		Description:   manifest.Description,
 		Documentation: documentation,
 	}.Normalized()
+	if context.ProjectRoot == "" {
+		context.ProjectRoot = resolveProjectRoot(outputDir)
+	}
 
 	if _, err := domain.ParseTargetPlatform(string(context.Target)); err != nil {
 		return domain.ProjectContext{}, fmt.Errorf("invalid project context: target is required")
@@ -108,6 +117,7 @@ func (g FilesystemGateway) SaveProjectContext(_ context.Context, request usecase
 
 	manifestBytes, err := yaml.Marshal(projectContextManifest{
 		Target:      request.Target,
+		ProjectRoot: resolveProjectRoot(request.OutputDir),
 		Title:       request.Title,
 		Description: request.Description,
 		Documents:   documents,
@@ -216,12 +226,24 @@ func (g FilesystemGateway) UpdateApp(ctx context.Context, request usecase.Update
 		return usecase.UpdateAppResult{}, fmt.Errorf("template source unavailable for update-app")
 	}
 
-	currentPlatformSkills, err := g.loadPlatformSkillsFromToolsDir(filepath.Join(sourceDir, "tools"))
+	currentCatalog, err := g.loadTemplateCatalogFromToolsDir(filepath.Join(sourceDir, "tools"))
 	if err != nil {
 		return usecase.UpdateAppResult{}, err
 	}
 
-	previousPlatformSkills, err := g.loadPlatformSkillsFromToolsDir(filepath.Join(resolveHeimdallLayout(request.OutputDir).TemplateDir, "tools"))
+	currentPlatformTools, err := g.loadPlatformToolsFromToolsDir(filepath.Join(sourceDir, "tools"))
+	if err != nil {
+		return usecase.UpdateAppResult{}, err
+	}
+	currentPlatformSkills := platformToolsToSkillAssets(currentPlatformTools)
+
+	previousPlatformTools, err := g.loadPlatformToolsFromToolsDir(filepath.Join(resolveHeimdallLayout(request.OutputDir).TemplateDir, "tools"))
+	if err != nil {
+		return usecase.UpdateAppResult{}, err
+	}
+	previousPlatformSkills := platformToolsToSkillAssets(previousPlatformTools)
+
+	state, err := loadManagedToolsState(request.OutputDir)
 	if err != nil {
 		return usecase.UpdateAppResult{}, err
 	}
@@ -264,12 +286,36 @@ func (g FilesystemGateway) UpdateApp(ctx context.Context, request usecase.Update
 		result.Removed = append(result.Removed, "skill:"+skillName)
 	}
 
-	templateOutput, templateErr := g.copyTemplateSnapshot(request.OutputDir, true)
-	if templateErr != nil {
-		return usecase.UpdateAppResult{}, templateErr
+	templateToolsResult, err := g.refreshPlatformToolsSnapshot(request.OutputDir, currentPlatformTools, previousPlatformTools)
+	if err != nil {
+		return usecase.UpdateAppResult{}, err
 	}
-	if templateOutput.Path != "" {
-		result.Installed = append(result.Installed, templateOutput.Path)
+	result.Removed = append(result.Removed, templateToolsResult.Removed...)
+	result.Installed = append(result.Installed, templateToolsResult.Installed...)
+	result.Failed = append(result.Failed, templateToolsResult.Failed...)
+	result.Warnings = append(result.Warnings, templateToolsResult.Warnings...)
+
+	managedSkillNames := make(map[string]struct{}, len(state.Skills)+len(currentPlatformSkills))
+	for _, skill := range state.Skills {
+		normalized := strings.TrimSpace(skill)
+		if normalized != "" {
+			managedSkillNames[normalized] = struct{}{}
+		}
+	}
+	for _, skill := range currentPlatformSkills {
+		if skill.Name != "" {
+			managedSkillNames[skill.Name] = struct{}{}
+		}
+	}
+
+	skillsToInstall := make([]usecase.SkillAsset, 0, len(managedSkillNames))
+	missingManagedSkills := make([]string, 0)
+	for skillName := range managedSkillNames {
+		if skill, exists := currentCatalog.SkillsByName[skillName]; exists {
+			skillsToInstall = append(skillsToInstall, skill)
+		} else {
+			missingManagedSkills = append(missingManagedSkills, skillName)
+		}
 	}
 
 	skillsResult, err := g.InstallSkills(ctx, usecase.InstallRequest{
@@ -277,7 +323,31 @@ func (g FilesystemGateway) UpdateApp(ctx context.Context, request usecase.Update
 		Force:        true,
 		OutputDir:    request.OutputDir,
 		SkipWrappers: true,
-	}, currentPlatformSkills)
+	}, skillsToInstall)
+	if err != nil {
+		return usecase.UpdateAppResult{}, err
+	}
+
+	managedAssistants := make([]usecase.AssistantAsset, 0, len(state.Assistants))
+	missingManagedAssistants := make([]string, 0)
+	for _, assistantID := range state.Assistants {
+		normalized := strings.TrimSpace(assistantID)
+		if normalized == "" {
+			continue
+		}
+
+		if assistant, exists := currentCatalog.AssistantsByID[normalized]; exists {
+			managedAssistants = append(managedAssistants, assistant)
+		} else {
+			missingManagedAssistants = append(missingManagedAssistants, normalized)
+		}
+	}
+
+	assistantsResult, err := g.InstallAssistants(ctx, usecase.InstallRequest{
+		Target:    request.Target,
+		Force:     true,
+		OutputDir: request.OutputDir,
+	}, managedAssistants)
 	if err != nil {
 		return usecase.UpdateAppResult{}, err
 	}
@@ -286,6 +356,23 @@ func (g FilesystemGateway) UpdateApp(ctx context.Context, request usecase.Update
 	result.Skipped = append(result.Skipped, skillsResult.Skipped...)
 	result.Failed = append(result.Failed, skillsResult.Failed...)
 	result.Warnings = append(result.Warnings, skillsResult.Warnings...)
+
+	result.Installed = append(result.Installed, assistantsResult.Installed...)
+	result.Skipped = append(result.Skipped, assistantsResult.Skipped...)
+	result.Failed = append(result.Failed, assistantsResult.Failed...)
+	result.Warnings = append(result.Warnings, assistantsResult.Warnings...)
+
+	removedSkills, removedSkillWarnings := removeManagedSkillsFromDisk(layout, missingManagedSkills)
+	result.Removed = append(result.Removed, removedSkills...)
+	result.Warnings = append(result.Warnings, removedSkillWarnings...)
+
+	removedAssistants, removedAssistantWarnings := removeManagedAssistantsFromDisk(layout, request.Target, missingManagedAssistants)
+	result.Removed = append(result.Removed, removedAssistants...)
+	result.Warnings = append(result.Warnings, removedAssistantWarnings...)
+
+	if err := removeManagedTools(request.OutputDir, missingManagedSkills, missingManagedAssistants); err != nil {
+		return usecase.UpdateAppResult{}, err
+	}
 
 	return result, nil
 }
@@ -306,8 +393,9 @@ func (g FilesystemGateway) ensureProjectContextTarget(request usecase.InitReques
 	}
 
 	manifestBytes, err := yaml.Marshal(projectContextManifest{
-		Target:    request.Target,
-		Documents: []projectContextDocument{},
+		Target:      request.Target,
+		ProjectRoot: resolveProjectRoot(request.OutputDir),
+		Documents:   []projectContextDocument{},
 	})
 	if err != nil {
 		return fileWriteOutput{}, fmt.Errorf("marshal project context manifest: %w", err)
@@ -347,15 +435,34 @@ func (g FilesystemGateway) installPlatformTools(ctx context.Context, request use
 }
 
 func (g FilesystemGateway) loadPlatformSkillsFromToolsDir(toolsDir string) ([]usecase.SkillAsset, error) {
+	tools, err := g.loadPlatformToolsFromToolsDir(toolsDir)
+	if err != nil {
+		return nil, err
+	}
+	return platformToolsToSkillAssets(tools), nil
+}
+
+type platformToolAsset struct {
+	FileName string
+	Source   string
+	Skill    usecase.SkillAsset
+}
+
+type templateToolCatalog struct {
+	SkillsByName   map[string]usecase.SkillAsset
+	AssistantsByID map[string]usecase.AssistantAsset
+}
+
+func (g FilesystemGateway) loadPlatformToolsFromToolsDir(toolsDir string) ([]platformToolAsset, error) {
 	entries, err := os.ReadDir(toolsDir)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return []usecase.SkillAsset{}, nil
+			return []platformToolAsset{}, nil
 		}
 		return nil, fmt.Errorf("read tools dir for platform auto-install: %w", err)
 	}
 
-	skills := make([]usecase.SkillAsset, 0)
+	tools := make([]platformToolAsset, 0)
 	for _, entry := range entries {
 		if entry.IsDir() {
 			continue
@@ -383,12 +490,16 @@ func (g FilesystemGateway) loadPlatformSkillsFromToolsDir(toolsDir string) ([]us
 				return nil, fmt.Errorf("validate platform tool %q: skill name is required", toolPath)
 			}
 
-			skills = append(skills, usecase.SkillAsset{
-				Name: skillName,
-				Contract: &usecase.SkillContract{
-					Name:         skillName,
-					Description:  strings.TrimSpace(tool.Description),
-					Instructions: strings.TrimSpace(tool.Instructions),
+			tools = append(tools, platformToolAsset{
+				FileName: entry.Name(),
+				Source:   toolPath,
+				Skill: usecase.SkillAsset{
+					Name: skillName,
+					Contract: &usecase.SkillContract{
+						Name:         skillName,
+						Description:  strings.TrimSpace(tool.Description),
+						Instructions: strings.TrimSpace(tool.Instructions),
+					},
 				},
 			})
 		case "assistant":
@@ -402,12 +513,16 @@ func (g FilesystemGateway) loadPlatformSkillsFromToolsDir(toolsDir string) ([]us
 				assistantName = assistantID
 			}
 
-			skills = append(skills, usecase.SkillAsset{
-				Name: assistantID,
-				Contract: &usecase.SkillContract{
-					Name:         assistantName,
-					Description:  strings.TrimSpace(tool.Description),
-					Instructions: buildPlatformAssistantSkillInstructions(tool.Instructions, tool.Skills),
+			tools = append(tools, platformToolAsset{
+				FileName: entry.Name(),
+				Source:   toolPath,
+				Skill: usecase.SkillAsset{
+					Name: assistantID,
+					Contract: &usecase.SkillContract{
+						Name:         assistantName,
+						Description:  strings.TrimSpace(tool.Description),
+						Instructions: buildPlatformAssistantSkillInstructions(tool.Instructions, tool.Skills),
+					},
 				},
 			})
 		default:
@@ -415,7 +530,349 @@ func (g FilesystemGateway) loadPlatformSkillsFromToolsDir(toolsDir string) ([]us
 		}
 	}
 
-	return skills, nil
+	return tools, nil
+}
+
+func platformToolsToSkillAssets(tools []platformToolAsset) []usecase.SkillAsset {
+	skills := make([]usecase.SkillAsset, 0, len(tools))
+	for _, tool := range tools {
+		skills = append(skills, tool.Skill)
+	}
+	return skills
+}
+
+func (g FilesystemGateway) refreshPlatformToolsSnapshot(outputDir string, currentTools []platformToolAsset, previousTools []platformToolAsset) (usecase.UpdateAppResult, error) {
+	result := usecase.UpdateAppResult{
+		Removed:   []string{},
+		Installed: []string{},
+		Skipped:   []string{},
+		Failed:    []string{},
+		Warnings:  []string{},
+	}
+
+	toolsDir := filepath.Join(resolveHeimdallLayout(outputDir).TemplateDir, "tools")
+	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
+		return usecase.UpdateAppResult{}, fmt.Errorf("create tools snapshot dir %q: %w", toolsDir, err)
+	}
+
+	currentByFile := make(map[string]platformToolAsset, len(currentTools))
+	for _, tool := range currentTools {
+		currentByFile[tool.FileName] = tool
+	}
+
+	for _, tool := range previousTools {
+		if _, exists := currentByFile[tool.FileName]; exists {
+			continue
+		}
+
+		destination := filepath.Join(toolsDir, tool.FileName)
+		if _, err := os.Stat(destination); err != nil {
+			if os.IsNotExist(err) {
+				result.Skipped = append(result.Skipped, "template-tool:"+tool.FileName)
+				continue
+			}
+			result.Failed = append(result.Failed, "template-tool:"+tool.FileName)
+			result.Warnings = append(result.Warnings, fmt.Sprintf("stat template tool %q: %v", destination, err))
+			continue
+		}
+
+		if err := os.Remove(destination); err != nil {
+			result.Failed = append(result.Failed, "template-tool:"+tool.FileName)
+			result.Warnings = append(result.Warnings, fmt.Sprintf("remove template tool %q: %v", destination, err))
+			continue
+		}
+		result.Removed = append(result.Removed, "template-tool:"+tool.FileName)
+	}
+
+	for _, tool := range currentTools {
+		destination := filepath.Join(toolsDir, tool.FileName)
+		copied, err := copyFileWithIdempotency(tool.Source, destination, true)
+		if err != nil {
+			result.Failed = append(result.Failed, "template-tool:"+tool.FileName)
+			result.Warnings = append(result.Warnings, err.Error())
+			continue
+		}
+
+		if copied {
+			result.Installed = append(result.Installed, "template-tool:"+tool.FileName)
+			continue
+		}
+		result.Skipped = append(result.Skipped, "template-tool:"+tool.FileName)
+	}
+
+	return result, nil
+}
+
+func (g FilesystemGateway) loadTemplateCatalogFromToolsDir(toolsDir string) (templateToolCatalog, error) {
+	entries, err := os.ReadDir(toolsDir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return templateToolCatalog{
+				SkillsByName:   map[string]usecase.SkillAsset{},
+				AssistantsByID: map[string]usecase.AssistantAsset{},
+			}, nil
+		}
+		return templateToolCatalog{}, fmt.Errorf("read tools dir for template catalog: %w", err)
+	}
+
+	catalog := templateToolCatalog{
+		SkillsByName:   make(map[string]usecase.SkillAsset),
+		AssistantsByID: make(map[string]usecase.AssistantAsset),
+	}
+
+	for _, entry := range entries {
+		if entry.IsDir() {
+			continue
+		}
+
+		ext := strings.ToLower(filepath.Ext(entry.Name()))
+		if ext != ".yaml" && ext != ".yml" {
+			continue
+		}
+
+		toolPath := filepath.Join(toolsDir, entry.Name())
+		tool, err := parseTemplateToolYAML(toolPath)
+		if err != nil {
+			return templateToolCatalog{}, err
+		}
+
+		switch normalizeTemplateToolType(tool.Type) {
+		case "skill":
+			skillName := strings.TrimSpace(tool.Name)
+			if skillName == "" {
+				return templateToolCatalog{}, fmt.Errorf("validate tool %q: skill name is required", toolPath)
+			}
+
+			catalog.SkillsByName[skillName] = usecase.SkillAsset{
+				Name: skillName,
+				Contract: &usecase.SkillContract{
+					Name:         skillName,
+					Description:  strings.TrimSpace(tool.Description),
+					Instructions: strings.TrimSpace(tool.Instructions),
+				},
+			}
+		case "assistant":
+			assistantID := strings.TrimSpace(tool.ID)
+			if assistantID == "" {
+				return templateToolCatalog{}, fmt.Errorf("validate tool %q: assistant id is required", toolPath)
+			}
+
+			catalog.AssistantsByID[assistantID] = usecase.AssistantAsset{
+				ID:           assistantID,
+				Name:         strings.TrimSpace(tool.Name),
+				Description:  strings.TrimSpace(tool.Description),
+				Instructions: strings.TrimSpace(tool.Instructions),
+				SourcePath:   toolPath,
+				Skills:       dedupeAndTrim(tool.Skills),
+				Categories:   dedupeAndTrim(tool.Categories),
+			}
+		default:
+			return templateToolCatalog{}, fmt.Errorf("validate tool %q: unsupported type %q", toolPath, tool.Type)
+		}
+	}
+
+	return catalog, nil
+}
+
+func managedToolsStatePath(outputDir string) string {
+	heimdall := resolveHeimdallLayout(outputDir)
+	return filepath.Join(heimdall.RootDir, "state", "managed-tools.yaml")
+}
+
+func loadManagedToolsState(outputDir string) (managedToolsState, error) {
+	path := managedToolsStatePath(outputDir)
+	data, err := os.ReadFile(path)
+	if err != nil {
+		if os.IsNotExist(err) {
+			return managedToolsState{
+				Skills:     []string{},
+				Assistants: []string{},
+			}, nil
+		}
+		return managedToolsState{}, fmt.Errorf("read managed tools state %q: %w", path, err)
+	}
+
+	var state managedToolsState
+	if err := yaml.Unmarshal(data, &state); err != nil {
+		return managedToolsState{}, fmt.Errorf("parse managed tools state %q: %w", path, err)
+	}
+
+	state.Skills = dedupeAndTrim(state.Skills)
+	state.Assistants = dedupeAndTrim(state.Assistants)
+	return state, nil
+}
+
+func saveManagedToolsState(outputDir string, state managedToolsState) error {
+	state.Skills = dedupeAndTrim(state.Skills)
+	state.Assistants = dedupeAndTrim(state.Assistants)
+
+	data, err := yaml.Marshal(state)
+	if err != nil {
+		return fmt.Errorf("marshal managed tools state: %w", err)
+	}
+
+	path := managedToolsStatePath(outputDir)
+	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+		return fmt.Errorf("create managed tools state dir for %q: %w", path, err)
+	}
+
+	if err := os.WriteFile(path, data, 0o644); err != nil {
+		return fmt.Errorf("write managed tools state %q: %w", path, err)
+	}
+
+	return nil
+}
+
+func addManagedSkills(outputDir string, names []string) error {
+	if len(names) == 0 {
+		return nil
+	}
+
+	state, err := loadManagedToolsState(outputDir)
+	if err != nil {
+		return err
+	}
+
+	state.Skills = append(state.Skills, names...)
+	return saveManagedToolsState(outputDir, state)
+}
+
+func addManagedAssistants(outputDir string, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	state, err := loadManagedToolsState(outputDir)
+	if err != nil {
+		return err
+	}
+
+	state.Assistants = append(state.Assistants, ids...)
+	return saveManagedToolsState(outputDir, state)
+}
+
+func removeManagedTools(outputDir string, skillNames []string, assistantIDs []string) error {
+	if len(skillNames) == 0 && len(assistantIDs) == 0 {
+		return nil
+	}
+
+	state, err := loadManagedToolsState(outputDir)
+	if err != nil {
+		return err
+	}
+
+	removeSkills := make(map[string]struct{}, len(skillNames))
+	for _, skill := range skillNames {
+		normalized := strings.TrimSpace(skill)
+		if normalized != "" {
+			removeSkills[normalized] = struct{}{}
+		}
+	}
+
+	removeAssistants := make(map[string]struct{}, len(assistantIDs))
+	for _, assistant := range assistantIDs {
+		normalized := strings.TrimSpace(assistant)
+		if normalized != "" {
+			removeAssistants[normalized] = struct{}{}
+		}
+	}
+
+	filteredSkills := make([]string, 0, len(state.Skills))
+	for _, skill := range state.Skills {
+		if _, remove := removeSkills[skill]; remove {
+			continue
+		}
+		filteredSkills = append(filteredSkills, skill)
+	}
+	state.Skills = filteredSkills
+
+	filteredAssistants := make([]string, 0, len(state.Assistants))
+	for _, assistant := range state.Assistants {
+		if _, remove := removeAssistants[assistant]; remove {
+			continue
+		}
+		filteredAssistants = append(filteredAssistants, assistant)
+	}
+	state.Assistants = filteredAssistants
+
+	return saveManagedToolsState(outputDir, state)
+}
+
+func removeManagedSkillsFromDisk(layout targetLayout, skillNames []string) ([]string, []string) {
+	removed := make([]string, 0, len(skillNames))
+	warnings := make([]string, 0)
+
+	for _, skillName := range skillNames {
+		normalized := strings.TrimSpace(skillName)
+		if normalized == "" {
+			continue
+		}
+
+		path := filepath.Join(layout.SkillsDir, normalized)
+		if _, err := os.Stat(path); err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			warnings = append(warnings, fmt.Sprintf("stat managed skill %q: %v", path, err))
+			continue
+		}
+
+		if err := os.RemoveAll(path); err != nil {
+			warnings = append(warnings, fmt.Sprintf("remove managed skill %q: %v", path, err))
+			continue
+		}
+
+		removed = append(removed, "skill:"+normalized)
+	}
+
+	return removed, warnings
+}
+
+func removeManagedAssistantsFromDisk(layout targetLayout, target domain.TargetPlatform, assistantIDs []string) ([]string, []string) {
+	removed := make([]string, 0, len(assistantIDs))
+	warnings := make([]string, 0)
+
+	for _, assistantID := range assistantIDs {
+		normalized := strings.TrimSpace(assistantID)
+		if normalized == "" {
+			continue
+		}
+
+		removedAssistant := false
+		for _, ext := range []string{".yaml", ".yml"} {
+			path := filepath.Join(layout.AssistantsDir, normalized+ext)
+			if _, err := os.Stat(path); err != nil {
+				if os.IsNotExist(err) {
+					continue
+				}
+				warnings = append(warnings, fmt.Sprintf("stat managed assistant %q: %v", path, err))
+				continue
+			}
+
+			if err := os.Remove(path); err != nil {
+				warnings = append(warnings, fmt.Sprintf("remove managed assistant %q: %v", path, err))
+				continue
+			}
+			removedAssistant = true
+		}
+
+		if target == domain.TargetCodex {
+			wrapperPath := filepath.Join(layout.SkillsDir, "assistant-"+normalized)
+			if _, err := os.Stat(wrapperPath); err == nil {
+				if removeErr := os.RemoveAll(wrapperPath); removeErr != nil {
+					warnings = append(warnings, fmt.Sprintf("remove managed assistant wrapper %q: %v", wrapperPath, removeErr))
+				} else {
+					removed = append(removed, "assistant-wrapper:"+normalized)
+				}
+			}
+		}
+
+		if removedAssistant {
+			removed = append(removed, "assistant:"+normalized)
+		}
+	}
+
+	return removed, warnings
 }
 
 func (g FilesystemGateway) InstallSkills(_ context.Context, request usecase.InstallRequest, skills []usecase.SkillAsset) (usecase.InstallResult, error) {
@@ -429,6 +886,7 @@ func (g FilesystemGateway) InstallSkills(_ context.Context, request usecase.Inst
 	}
 
 	result := usecase.InstallResult{}
+	managedInstalled := make([]string, 0, len(skills))
 	for _, skill := range skills {
 		dest := filepath.Join(layout.SkillsDir, skill.Name)
 		copied := false
@@ -458,9 +916,14 @@ func (g FilesystemGateway) InstallSkills(_ context.Context, request usecase.Inst
 
 		if copied {
 			result.Installed = append(result.Installed, "skill:"+skill.Name)
+			managedInstalled = append(managedInstalled, skill.Name)
 		} else {
 			result.Skipped = append(result.Skipped, "skill:"+skill.Name)
 		}
+	}
+
+	if err := addManagedSkills(request.OutputDir, managedInstalled); err != nil {
+		return usecase.InstallResult{}, err
 	}
 
 	return result, nil
@@ -477,6 +940,7 @@ func (g FilesystemGateway) InstallAssistants(_ context.Context, request usecase.
 	}
 
 	result := usecase.InstallResult{}
+	managedInstalled := make([]string, 0, len(assistants))
 	for _, assistant := range assistants {
 		ext := filepath.Ext(assistant.SourcePath)
 		if ext == "" {
@@ -493,6 +957,7 @@ func (g FilesystemGateway) InstallAssistants(_ context.Context, request usecase.
 
 		if copied {
 			result.Installed = append(result.Installed, "assistant:"+assistant.ID)
+			managedInstalled = append(managedInstalled, assistant.ID)
 		} else {
 			result.Skipped = append(result.Skipped, "assistant:"+assistant.ID)
 		}
@@ -511,6 +976,10 @@ func (g FilesystemGateway) InstallAssistants(_ context.Context, request usecase.
 				result.Skipped = append(result.Skipped, "assistant-wrapper:"+assistant.ID)
 			}
 		}
+	}
+
+	if err := addManagedAssistants(request.OutputDir, managedInstalled); err != nil {
+		return usecase.InstallResult{}, err
 	}
 
 	return result, nil
@@ -579,6 +1048,7 @@ type heimdallLayout struct {
 
 type projectContextManifest struct {
 	Target      domain.TargetPlatform    `yaml:"target"`
+	ProjectRoot string                   `yaml:"project_root,omitempty"`
 	Title       string                   `yaml:"title"`
 	Description string                   `yaml:"description"`
 	Documents   []projectContextDocument `yaml:"documents"`
@@ -638,6 +1108,19 @@ func resolveProjectContextLayout(outputDir string) projectContextLayout {
 		DocsDir:      filepath.Join(rootDir, "docs"),
 		ManifestPath: filepath.Join(rootDir, "project-context.yaml"),
 	}
+}
+
+func resolveProjectRoot(outputDir string) string {
+	baseDir := strings.TrimSpace(outputDir)
+	if baseDir == "" {
+		baseDir = "."
+	}
+
+	absolute, err := filepath.Abs(baseDir)
+	if err != nil {
+		return baseDir
+	}
+	return absolute
 }
 
 func resolveHeimdallLayout(outputDir string) heimdallLayout {

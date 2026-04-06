@@ -32,9 +32,19 @@ func ParseListLibraryArgs(args []string) (ParsedListLibraryCommand, error) {
 			}
 			i++
 			request.Category = strings.TrimSpace(args[i])
+		case "--output":
+			if i+1 >= len(args) {
+				return ParsedListLibraryCommand{}, fmt.Errorf("missing value for --output")
+			}
+			i++
+			request.OutputDir = strings.TrimSpace(args[i])
 		default:
 			if strings.HasPrefix(option, "--category=") {
 				request.Category = strings.TrimSpace(strings.TrimPrefix(option, "--category="))
+				break
+			}
+			if strings.HasPrefix(option, "--output=") {
+				request.OutputDir = strings.TrimSpace(strings.TrimPrefix(option, "--output="))
 				break
 			}
 			return ParsedListLibraryCommand{}, fmt.Errorf("unknown option %q", option)
@@ -45,6 +55,13 @@ func ParseListLibraryArgs(args []string) (ParsedListLibraryCommand, error) {
 		for _, arg := range args[1:] {
 			if strings.TrimSpace(arg) == "--category" || strings.HasPrefix(strings.TrimSpace(arg), "--category=") {
 				return ParsedListLibraryCommand{}, fmt.Errorf("missing value for --category")
+			}
+		}
+	}
+	if request.OutputDir == "" && len(args) > 1 {
+		for _, arg := range args[1:] {
+			if strings.TrimSpace(arg) == "--output" || strings.HasPrefix(strings.TrimSpace(arg), "--output=") {
+				return ParsedListLibraryCommand{}, fmt.Errorf("missing value for --output")
 			}
 		}
 	}

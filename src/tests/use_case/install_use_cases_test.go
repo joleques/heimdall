@@ -14,7 +14,7 @@ type fakeCatalogGateway struct {
 	err     error
 }
 
-func (f fakeCatalogGateway) Load(context.Context) (usecase.Catalog, error) {
+func (f fakeCatalogGateway) Load(context.Context, string) (usecase.Catalog, error) {
 	return f.catalog, f.err
 }
 
@@ -185,6 +185,7 @@ func TestInstallAssistantUseCaseUsesTargetFromProjectContextWhenNotProvided(t *t
 	installGateway := &fakeInstallGateway{
 		projectContext: domain.ProjectContext{
 			Target:        domain.TargetClaude,
+			ProjectRoot:   "/tmp/client-project",
 			Title:         "Heimdall",
 			Description:   "desc",
 			Documentation: []string{"README.md"},
@@ -202,6 +203,9 @@ func TestInstallAssistantUseCaseUsesTargetFromProjectContextWhenNotProvided(t *t
 
 	if installGateway.lastRequest.Target != domain.TargetClaude {
 		t.Fatalf("expected target resolved from project context, got %q", installGateway.lastRequest.Target)
+	}
+	if installGateway.lastRequest.OutputDir != "/tmp/client-project" {
+		t.Fatalf("expected output dir resolved from project context project_root, got %q", installGateway.lastRequest.OutputDir)
 	}
 }
 

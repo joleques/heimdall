@@ -67,6 +67,7 @@ type StartProject interface {
 type ListLibraryRequest struct {
 	IncludeSkills bool
 	Category      string
+	OutputDir     string
 }
 
 type AssistantLibraryItem struct {

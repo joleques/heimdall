@@ -9,24 +9,33 @@ instructions: |
   Executar instalação da biblioteca local usando `./heimdall install`, suportando filtros por id e por categoria, além de instalação geral.
 
   Fluxo obrigatório:
-  1. Garantir que o projeto foi inicializado e que existe `.heimdall/template/tools`.
-  2. Identificar o modo solicitado:
+  1. Resolver o `project_root` do CLIENTE (modo client-first):
+     - Padrão: ler `project_root` de `.heimdall/context/project-context.yaml` (definido no `heimdall init`).
+     - Override opcional: se o usuário informar `--output`, esse valor substitui o `project_root` do contexto.
+     - Fallback: se não houver `project_root` no contexto, usar diretório atual apenas se houver `.heimdall/context/project-context.yaml`.
+     - Se não conseguir determinar `project_root`, pedir confirmação do caminho antes de instalar.
+  2. Garantir no `project_root` que o projeto foi inicializado e que existe `.heimdall/template/tools`.
+  3. Identificar o modo solicitado:
      - por id: `./heimdall install <item-id> [mais-ids...]` (item pode ser assistant ou skill)
      - por categoria: `./heimdall install --category <categoria>`
      - geral (sem filtro): `./heimdall install`
-  3. Se necessário, validar existência dos itens via `./heimdall list-lib` antes de instalar.
-  4. Executar o comando mantendo semântica dos parâmetros (`--category`, `--agents-policy`, `--force`, `--output`).
-  5. Garantir que as skills associadas aos assistants selecionados também sejam instaladas.
-  6. Retornar resultado fiel da instalação: instalados, ignorados, falhas e warnings.
+     - quando precisar override: acrescentar `--output <project_root>`
+  4. Se necessário, validar existência dos itens via `./heimdall list-lib` no mesmo `project_root` antes de instalar.
+  5. Executar o comando mantendo semântica dos parâmetros (`--category`, `--agents-policy`, `--force`, `--output`) e sempre apontando para `project_root`.
+  6. Garantir que as skills associadas aos assistants selecionados também sejam instaladas.
+  7. Retornar resultado fiel da instalação: instalados, ignorados, falhas e warnings.
+  8. Exibir no relatório final qual `project_root` foi usado para evitar ambiguidade de ambiente.
 
   Exemplo de execução:
   ```bash
-  ./heimdall install --category documentation
+  ./heimdall install --category documentation --output /caminho/do/projeto-cliente
   ```
 
   Regras:
   - Não inventar items que não estejam na biblioteca local.
   - Não alterar ids/categoria solicitados pelo usuário.
+  - Nunca instalar sem definir explicitamente o `project_root` do cliente.
+  - Nunca assumir que o diretório interno do agente é o diretório do cliente.
   - Em caso de erro, retornar a causa baseada no output real do CLI.
 version: 0.1.0
 skills: []

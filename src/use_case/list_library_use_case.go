@@ -15,7 +15,7 @@ func NewListLibraryUseCase(catalog CatalogGateway) ListLibraryUseCase {
 }
 
 func (uc ListLibraryUseCase) Execute(ctx context.Context, request ListLibraryRequest) (ListLibraryResult, error) {
-	catalog, err := uc.catalog.Load(ctx)
+	catalog, err := uc.catalog.Load(ctx, request.OutputDir)
 	if err != nil {
 		return ListLibraryResult{}, err
 	}

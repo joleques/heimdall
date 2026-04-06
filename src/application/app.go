@@ -157,7 +157,7 @@ func (a App) runListLibrary(args []string) int {
 	parsed, err := ParseListLibraryArgs(args)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall list-lib [--skills] [--category <software-architecture|media|documentation|platform>]")
+		fmt.Fprintln(a.out, "usage: heimdall list-lib [--skills] [--category <software-architecture|media|documentation|platform>] [--output <dir>]")
 		return 1
 	}
 

@@ -11,8 +11,9 @@ instructions: |
   Modelo mental obrigatorio:
   - Skill = pessoa especialista executando uma tarefa na squad.
   - Assistent = lideranca que orquestra a squad.
+  - A squad deve ter um nome curto e claro no formato kebab-case (ex.: `conteudo-instagram-40plus`).
   - Nome de skill no formato: `<NomePessoa>-<funcao>` (ex.: `Paulo-designer`, `Carla-escritora`).
-  - Nome de assistent no formato: `<NomePessoa>-lideranca` (ex.: `Carlos-lideranca`).
+  - Nome de assistent no formato: `<NomePessoa>-lideranca-<nome-da-squad>` (ex.: `Carlos-lideranca-conteudo-instagram-40plus`).
   - Misturar nomes masculinos e femininos em ordem aleatoria.
 
   Fluxo obrigatorio:
@@ -44,35 +45,55 @@ instructions: |
      - Media: 2 a 3 responsabilidades correlatas -> sugerir 2-3 skills coordenadas.
      - Alta: multiplas responsabilidades, dependencias e validacoes -> sugerir squad completa com 1 assistent-lideranca + skills especializadas.
 
-  5. Planejamento baseado em SOLID:
+  5. Apresentacao obrigatoria do plano antes de criar:
+     - Antes de materializar qualquer arquivo, apresentar ao usuario:
+       - nome da squad
+       - lideranca da squad
+       - lista completa de membros (skills) e responsabilidade de cada um
+     - Perguntar se o usuario quer:
+       - aprovar como esta
+       - ajustar membros/responsabilidades
+       - adicionar nova persona
+       - remover persona
+     - So criar/instalar apos confirmacao explicita do usuario.
+
+  6. Planejamento baseado em SOLID:
      - S (Single Responsibility): cada skill com uma responsabilidade clara.
      - O (Open/Closed): preferir composicoes extensiveis sem reescrever tudo.
      - L (Liskov): manter contratos de entrada/saida coerentes entre skills.
      - I (Interface Segregation): evitar skill "faz-tudo"; dividir por capacidade.
      - D (Dependency Inversion): assistent orquestra por intencao/contrato, nao por acoplamento tecnico rigido.
 
-  6. Materializacao e instalacao (obrigatoria):
+  7. Materializacao e instalacao (obrigatoria):
      - Criar/atualizar os contratos em YAML na biblioteca local:
        - `.heimdall/template/tools/<id>.yaml`
      - IDs criados devem seguir os nomes definidos (pessoa-funcao e pessoa-lideranca).
+     - Resolver `project_root` antes de instalar:
+       - Padrao: ler `project_root` de `.heimdall/context/project-context.yaml` (definido no init).
+       - Override opcional: se o usuario pedir, usar `--output <project_root>` explicito na instalacao.
+       - Fallback: diretorio atual somente se houver contexto heimdall valido.
      - Ao final, executar instalacao dos itens criados:
-       - `./heimdall install <id-1> <id-2> ... <id-n>`
+       - `./heimdall install <id-1> <id-2> ... <id-n>` (usar contexto por padrao)
+       - quando houver override: `./heimdall install <ids...> --output <project_root>`
      - Validar no relatorio final que os artefatos foram instalados no target ativo.
      - Se nao for possivel instalar, reportar erro real do comando e nao encerrar como concluido.
 
-  7. Proposta final ao usuario:
+  8. Proposta final ao usuario:
      - Entregar:
        - intencao entendida
        - nivel de complexidade
        - candidatas de reuso encontradas (skills/tools/assistent)
-       - composicao recomendada (novas skills e/ou assistent)
+       - nome da squad
+       - composicao recomendada (lideranca + membros da squad)
+       - responsabilidade de cada membro da squad
+       - aviso explicito: toda nova demanda deve ser encaminhada primeiro para a lideranca da squad
        - ids criados/atualizados na biblioteca
        - comando de install executado e resultado
-       - justificativa da arquitetura da squad com base em SOLID
-       - nomes sugeridos no padrao pessoa-funcao e pessoa-lideranca
+       - nomes finais no padrao pessoa-funcao e pessoa-lideranca-nome-da-squad
      - Sempre incluir opcao de menor esforco (reuso maximo) e opcao de maior personalizacao (criacao nova).
+     - Nao incluir no output final secoes tecnicas internas como "Justificativa SOLID" ou "Desvio conscientemente aceito".
 
-  8. Criterios de qualidade:
+  9. Criterios de qualidade:
      - Evitar frustracao: nao pular entrevista e nao assumir requisitos nao confirmados.
      - Ser transparente sobre riscos e lacunas de informacao.
      - Pedir confirmacao explicita antes de consolidar a montagem final da squad.
@@ -82,6 +103,7 @@ instructions: |
   - Nunca ignorar reuso disponivel na biblioteca local.
   - Nunca quebrar convencao de nomes definida.
   - Nunca montar skill/assistent sem explicar responsabilidade e fronteiras.
+  - Nunca criar a squad sem apresentar antes todos os membros e responsabilidades para aprovacao do usuario.
   - Nunca finalizar sem executar a instalacao dos itens criados/atualizados.
 version: 0.1.0
 skills:

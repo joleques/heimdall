@@ -7,6 +7,7 @@ import (
 
 type ProjectContext struct {
 	Target        TargetPlatform
+	ProjectRoot   string
 	Title         string
 	Description   string
 	Documentation []string
@@ -43,6 +44,7 @@ func (c ProjectContext) Validate() error {
 func (c ProjectContext) Normalized() ProjectContext {
 	return ProjectContext{
 		Target:        TargetPlatform(strings.TrimSpace(string(c.Target))),
+		ProjectRoot:   strings.TrimSpace(c.ProjectRoot),
 		Title:         strings.TrimSpace(c.Title),
 		Description:   strings.TrimSpace(c.Description),
 		Documentation: dedupeAndTrim(c.Documentation),

@@ -63,6 +63,7 @@ func TestProjectContextNormalized(t *testing.T) {
 
 	normalized := domain.ProjectContext{
 		Target:        " codex ",
+		ProjectRoot:   "  /tmp/heimdall  ",
 		Title:         "  Heimdall App  ",
 		Description:   "  Contexto principal.  ",
 		Documentation: []string{" README.md ", "README.md", " docs/vision.md "},
@@ -74,6 +75,9 @@ func TestProjectContextNormalized(t *testing.T) {
 
 	if normalized.Title != "Heimdall App" {
 		t.Fatalf("expected trimmed title, got %q", normalized.Title)
+	}
+	if normalized.ProjectRoot != "/tmp/heimdall" {
+		t.Fatalf("expected trimmed project root, got %q", normalized.ProjectRoot)
 	}
 
 	if normalized.Description != "Contexto principal." {

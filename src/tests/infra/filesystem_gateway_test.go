@@ -104,6 +104,9 @@ func TestFilesystemGatewayInitTarget(t *testing.T) {
 	if !strings.Contains(string(content), "target: claude") {
 		t.Fatalf("expected init to persist target in project-context.yaml, got %s", string(content))
 	}
+	if !strings.Contains(string(content), "project_root: "+outputDir) {
+		t.Fatalf("expected init to persist project_root in project-context.yaml, got %s", string(content))
+	}
 
 	gitignorePath := filepath.Join(outputDir, ".gitignore")
 	gitignoreContent, err := os.ReadFile(gitignorePath)
@@ -414,6 +417,16 @@ instructions: |
 	if err := os.WriteFile(filepath.Join(outputDir, ".heimdall", "template", "tools", "heimdall-old.yaml"), []byte(previousPlatformTool), 0o644); err != nil {
 		t.Fatal(err)
 	}
+	nonPlatformTool := `type: skill
+categories:
+  - documentation
+name: user-custom-doc
+description: User custom tool.
+instructions: |
+  custom docs flow`
+	if err := os.WriteFile(filepath.Join(outputDir, ".heimdall", "template", "tools", "user-custom-doc.yaml"), []byte(nonPlatformTool), 0o644); err != nil {
+		t.Fatal(err)
+	}
 
 	gateway := infrainstall.NewFilesystemGateway(filepath.Join(templateRoot, "AGENTS.md"))
 	result, err := gateway.UpdateApp(context.Background(), usecase.UpdateAppRequest{
@@ -430,11 +443,88 @@ instructions: |
 	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "heimdall-install", "SKILL.md")); err != nil {
 		t.Fatalf("expected current platform skill to be installed, got %v", err)
 	}
+	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "template", "tools", "user-custom-doc.yaml")); err != nil {
+		t.Fatalf("expected non-platform custom tool to be preserved, got %v", err)
+	}
 
 	if len(result.Removed) == 0 {
 		t.Fatalf("expected removed entries, got %#v", result)
 	}
 	if len(result.Installed) == 0 {
 		t.Fatalf("expected installed entries, got %#v", result)
+	}
+}
+
+func TestFilesystemGatewayUpdateAppRefreshesManagedNonPlatformSkill(t *testing.T) {
+	t.Parallel()
+
+	templateRoot := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(templateRoot, "tools"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(templateRoot, "AGENTS.md"), []byte("agents-template"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	toolV1 := `type: skill
+categories:
+  - documentation
+name: engineering-writer
+description: Writer helper.
+instructions: |
+  v1 instructions`
+	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "engineering-writer.yaml"), []byte(toolV1), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	outputDir := t.TempDir()
+	gateway := infrainstall.NewFilesystemGateway(filepath.Join(templateRoot, "AGENTS.md"))
+	installResult, err := gateway.InstallSkills(context.Background(), usecase.InstallRequest{
+		Target:    domain.TargetCodex,
+		OutputDir: outputDir,
+		Force:     true,
+	}, []usecase.SkillAsset{
+		{
+			Name: "engineering-writer",
+			Contract: &usecase.SkillContract{
+				Name:         "engineering-writer",
+				Description:  "Writer helper.",
+				Instructions: "v1 instructions",
+			},
+		},
+	})
+	if err != nil {
+		t.Fatalf("expected skill install to succeed, got %v", err)
+	}
+	if len(installResult.Installed) == 0 {
+		t.Fatalf("expected installed skill, got %#v", installResult)
+	}
+
+	toolV2 := `type: skill
+categories:
+  - documentation
+name: engineering-writer
+description: Writer helper.
+instructions: |
+  v2 instructions`
+	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "engineering-writer.yaml"), []byte(toolV2), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = gateway.UpdateApp(context.Background(), usecase.UpdateAppRequest{
+		Target:    domain.TargetCodex,
+		OutputDir: outputDir,
+	})
+	if err != nil {
+		t.Fatalf("expected update-app to succeed, got %v", err)
+	}
+
+	skillPath := filepath.Join(outputDir, ".codex", "skills", "engineering-writer", "SKILL.md")
+	content, err := os.ReadFile(skillPath)
+	if err != nil {
+		t.Fatalf("expected managed non-platform skill to exist, got %v", err)
+	}
+	if !strings.Contains(string(content), "v2 instructions") {
+		t.Fatalf("expected managed non-platform skill to be updated to v2, got %s", string(content))
 	}
 }

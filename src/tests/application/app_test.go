@@ -249,7 +249,7 @@ func TestAppRunListLibraryWithSkills(t *testing.T) {
 	var out bytes.Buffer
 	app := application.NewAppWithUseCases(bytes.NewBuffer(nil), &out, installUC, initUC, startUC, listUC, updateUC)
 
-	code := app.Run([]string{"list-lib", "--skills", "--category", "documentation"})
+	code := app.Run([]string{"list-lib", "--skills", "--category", "documentation", "--output", "/tmp/client-project"})
 	if code != 0 {
 		t.Fatalf("expected exit code 0, got %d", code)
 	}
@@ -262,6 +262,9 @@ func TestAppRunListLibraryWithSkills(t *testing.T) {
 	}
 	if listUC.request.Category != "documentation" {
 		t.Fatalf("expected category documentation, got %q", listUC.request.Category)
+	}
+	if listUC.request.OutputDir != "/tmp/client-project" {
+		t.Fatalf("expected output dir /tmp/client-project, got %q", listUC.request.OutputDir)
 	}
 
 	output := out.String()
