@@ -371,7 +371,7 @@ instructions: |
   │    "Carrossel Instagram: quantos slides? Texto por slide?"      │
   │    → recebe: orientações visuais por plataforma                 │
   │                                                                 │
-  │  linkedin-poster / instagram-poster ──→ Modo Revisão            │
+  │  linkedin-poster ──→ Modo Revisão                               │
   │    "Antes de publicar: hashtags ok? CTA ok? Tamanho ok?"        │
   │    → recebe: checklist de conformidade                          │
   │                                                                 │
