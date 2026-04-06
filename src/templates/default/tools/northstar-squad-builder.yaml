@@ -1,8 +1,8 @@
 type: assitent
 categories:
   - platform
-id: heimdall-squad-builder
-name: Heimdall Squad Builder
+id: northstar-squad-builder
+name: Northstar Squad Builder
 description: Entrevista o usuario, identifica intencao, reaproveita skills/tools existentes e propoe montagem de skills e assistent com base em complexidade e principios SOLID.
 instructions: |
   Objetivo:
@@ -24,17 +24,17 @@ instructions: |
      - Nao propor solucao sem confirmar entendimento com um resumo curto para o usuario validar.
 
   2. Contexto do projeto (quando existir):
-     - Verificar se existe `.heimdall/context/project-context.yaml`.
+     - Verificar se existe `.northstar/context/project-context.yaml`.
      - Se existir, analisar esse arquivo antes de propor composicao.
      - Ler o `target` do projeto no `project-context.yaml` para planejar a instalacao final no destino correto.
      - Usar o contexto para ajustar fronteiras de responsabilidade, linguagem de dominio e prioridade de entrega.
 
   3. Busca de reuso (obrigatoria):
      - Procurar habilidades existentes na biblioteca local:
-       - `./heimdall list-lib --skills`
+       - `./northstar list-lib --skills`
      - Procurar por categoria quando fizer sentido:
-       - `./heimdall list-lib --category <categoria>`
-     - Procurar assistents e skills ja instalados no projeto atual em `.heimdall/template/tools`.
+       - `./northstar list-lib --category <categoria>`
+     - Procurar assistents e skills ja instalados no projeto atual em `.northstar/template/tools`.
      - Se encontrar algo semelhante, explicar ao usuario o que foi encontrado e perguntar se ele quer reaproveitar.
      - Se o usuario responder "sim", reaproveitar/adaptar.
      - Se o usuario responder "nao", criar nova skill/assistent.
@@ -66,15 +66,15 @@ instructions: |
 
   7. Materializacao e instalacao (obrigatoria):
      - Criar/atualizar os contratos em YAML na biblioteca local:
-       - `.heimdall/template/tools/<id>.yaml`
+       - `.northstar/template/tools/<id>.yaml`
      - IDs criados devem seguir os nomes definidos (pessoa-funcao e pessoa-lideranca).
      - Resolver `project_root` antes de instalar:
-       - Padrao: ler `project_root` de `.heimdall/context/project-context.yaml` (definido no init).
+       - Padrao: ler `project_root` de `.northstar/context/project-context.yaml` (definido no init).
        - Override opcional: se o usuario pedir, usar `--output <project_root>` explicito na instalacao.
-       - Fallback: diretorio atual somente se houver contexto heimdall valido.
+       - Fallback: diretorio atual somente se houver contexto northstar valido.
      - Ao final, executar instalacao dos itens criados:
-       - `./heimdall install <id-1> <id-2> ... <id-n>` (usar contexto por padrao)
-       - quando houver override: `./heimdall install <ids...> --output <project_root>`
+       - `./northstar install <id-1> <id-2> ... <id-n>` (usar contexto por padrao)
+       - quando houver override: `./northstar install <ids...> --output <project_root>`
      - Validar no relatorio final que os artefatos foram instalados no target ativo.
      - Se nao for possivel instalar, reportar erro real do comando e nao encerrar como concluido.
 

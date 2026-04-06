@@ -63,7 +63,7 @@ func NewAppWithUseCases(in io.Reader, out io.Writer, installAssistantUC usecase.
 
 func (a App) Run(args []string) int {
 	if len(args) == 0 {
-		fmt.Fprintln(a.out, "usage: heimdall <command> [args]")
+		fmt.Fprintln(a.out, "usage: northstar <command> [args]")
 		fmt.Fprintln(a.out, "commands: init, start, list-lib, install, update-app")
 		return 1
 	}
@@ -90,7 +90,7 @@ func (a App) runInit(args []string) int {
 	parsed, err := ParseInitArgs(args)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall init <codex|antigravity|claude|cursor> [--agents-policy <skip|if-missing|overwrite>] [--force] [--output <dir>]")
+		fmt.Fprintln(a.out, "usage: northstar init <codex|antigravity|claude|cursor> [--agents-policy <skip|if-missing|overwrite>] [--force] [--output <dir>]")
 		return 1
 	}
 
@@ -116,7 +116,7 @@ func (a App) runStart(args []string) int {
 	parsed, err := ParseStartArgs(args, nil)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall start [--target <codex|antigravity|claude|cursor>] [--title <value>] [--description <value>] [--doc <path-or-text>]... [--interactive] [--force] [--output <dir>]")
+		fmt.Fprintln(a.out, "usage: northstar start [--target <codex|antigravity|claude|cursor>] [--title <value>] [--description <value>] [--doc <path-or-text>]... [--interactive] [--force] [--output <dir>]")
 		return 1
 	}
 
@@ -157,7 +157,7 @@ func (a App) runListLibrary(args []string) int {
 	parsed, err := ParseListLibraryArgs(args)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall list-lib [--skills] [--category <software-architecture|media|documentation|platform>] [--output <dir>]")
+		fmt.Fprintln(a.out, "usage: northstar list-lib [--skills] [--category <software-architecture|media|documentation|platform>] [--output <dir>]")
 		return 1
 	}
 
@@ -190,8 +190,8 @@ func (a App) runInstall(args []string) int {
 	parsed, err := ParseCLIArgs(args)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall install [assistant-id ...] [--category <software-architecture|media|documentation|platform>] [--agents-policy <skip|if-missing|overwrite>] [--force] [--output <dir>]")
-		fmt.Fprintln(a.out, "legacy: heimdall install <codex|antigravity|claude|cursor> [assistant-id ...] [--category <...>] [options]")
+		fmt.Fprintln(a.out, "usage: northstar install [assistant-id ...] [--category <software-architecture|media|documentation|platform>] [--agents-policy <skip|if-missing|overwrite>] [--force] [--output <dir>]")
+		fmt.Fprintln(a.out, "legacy: northstar install <codex|antigravity|claude|cursor> [assistant-id ...] [--category <...>] [options]")
 		return 1
 	}
 
@@ -246,7 +246,7 @@ func (a App) runUpdateApp(args []string) int {
 	parsed, err := ParseUpdateAppArgs(args)
 	if err != nil {
 		fmt.Fprintf(a.out, "error: %v\n", err)
-		fmt.Fprintln(a.out, "usage: heimdall update-app [codex|antigravity|claude|cursor] [--output <dir>]")
+		fmt.Fprintln(a.out, "usage: northstar update-app [codex|antigravity|claude|cursor] [--output <dir>]")
 		return 1
 	}
 

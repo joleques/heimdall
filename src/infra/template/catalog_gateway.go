@@ -90,7 +90,7 @@ func resolveClientTemplateRoot(outputDir string) string {
 		base = "."
 	}
 
-	root := filepath.Join(base, ".heimdall", "template")
+	root := filepath.Join(base, ".northstar", "template")
 	info, err := os.Stat(root)
 	if err != nil || !info.IsDir() {
 		return ""

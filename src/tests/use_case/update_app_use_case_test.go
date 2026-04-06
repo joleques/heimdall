@@ -34,7 +34,7 @@ func TestUpdateAppUseCaseExecuteWithExplicitTarget(t *testing.T) {
 	t.Parallel()
 
 	gateway := &fakeUpdateAppGateway{
-		result: usecase.UpdateAppResult{Installed: []string{"skill:heimdall-install"}},
+		result: usecase.UpdateAppResult{Installed: []string{"skill:northstar-install"}},
 	}
 
 	uc := usecase.NewUpdateAppUseCase(gateway, nil)
@@ -58,7 +58,7 @@ func TestUpdateAppUseCaseExecuteLoadsTargetFromProjectContext(t *testing.T) {
 	t.Parallel()
 
 	gateway := &fakeUpdateAppGateway{
-		result: usecase.UpdateAppResult{Removed: []string{"skill:heimdall-start"}},
+		result: usecase.UpdateAppResult{Removed: []string{"skill:northstar-start"}},
 	}
 	projectContext := &fakeProjectContextGateway{
 		context: domain.ProjectContext{Target: domain.TargetClaude},

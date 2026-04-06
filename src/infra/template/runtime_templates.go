@@ -52,7 +52,7 @@ func isDir(path string) bool {
 }
 
 func extractEmbeddedTemplates() (string, error) {
-	cacheRoot := filepath.Join(os.TempDir(), "heimdall-runtime-templates")
+	cacheRoot := filepath.Join(os.TempDir(), "northstar-runtime-templates")
 	templateRoot := filepath.Join(cacheRoot, "default")
 
 	if err := os.RemoveAll(cacheRoot); err != nil {

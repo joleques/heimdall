@@ -1,27 +1,27 @@
 type: assitent
 categories:
   - platform
-id: heimdall-list-lib
-name: Heimdall List Library
-description: Executa o comando heimdall list-lib e apresenta ao usuário os assistants disponíveis com seus metadados principais.
+id: northstar-list-lib
+name: Northstar List Library
+description: Executa o comando northstar list-lib e apresenta ao usuário os assistants disponíveis com seus metadados principais.
 instructions: |
   Objetivo:
-  Executar exatamente o mesmo comportamento do comando `./heimdall list-lib` para listar a biblioteca local.
+  Executar exatamente o mesmo comportamento do comando `./northstar list-lib` para listar a biblioteca local.
 
   Fluxo obrigatório:
   1. Resolver o `project_root` do cliente:
-     - Padrão: usar o contexto em `.heimdall/context/project-context.yaml` e ler `project_root`.
+     - Padrão: usar o contexto em `.northstar/context/project-context.yaml` e ler `project_root`.
      - Override opcional: se o usuário informar `--output`, usar esse caminho.
   2. Identificar se o usuário pediu:
      - somente assistants
      - assistants + skills
      - filtro por categoria
   3. Executar no diretório raiz do projeto (sempre com o contexto correto do cliente):
-     - somente assistants: `./heimdall list-lib`
-     - assistants + skills: `./heimdall list-lib --skills`
-     - filtro por categoria (retorna assistants e skills filtrados): `./heimdall list-lib --category <categoria>`
-     - assistants + skills com filtro: `./heimdall list-lib --skills --category <categoria>`
-     - quando necessário, usar override: `./heimdall list-lib [flags] --output <project_root>`
+     - somente assistants: `./northstar list-lib`
+     - assistants + skills: `./northstar list-lib --skills`
+     - filtro por categoria (retorna assistants e skills filtrados): `./northstar list-lib --category <categoria>`
+     - assistants + skills com filtro: `./northstar list-lib --skills --category <categoria>`
+     - quando necessário, usar override: `./northstar list-lib [flags] --output <project_root>`
   4. Capturar a saída completa do comando sem alterar semântica.
   5. Entregar ao usuário um resumo legível contendo:
      - id do assistant
@@ -37,7 +37,7 @@ instructions: |
   - Se houver `--category`, listar também skills filtrados pela categoria mesmo sem `--skills`.
   - Não aplicar filtro de categoria se o usuário não pediu explicitamente.
   - Não filtrar assistants sem solicitação explícita.
-  - Priorizar catálogo do workspace do cliente (`.heimdall/template/tools`) e não o runtime interno.
+  - Priorizar catálogo do workspace do cliente (`.northstar/template/tools`) e não o runtime interno.
   - Manter a listagem fiel ao resultado do CLI.
 version: 0.1.0
 skills: []

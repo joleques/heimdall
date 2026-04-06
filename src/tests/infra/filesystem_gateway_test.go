@@ -92,7 +92,7 @@ func TestFilesystemGatewayApplyAgentsPolicyRendersAgentsTemplateWithProjectConte
 	gateway := infrainstall.NewFilesystemGateway()
 	_, err := gateway.SaveProjectContext(context.Background(), usecase.StartRequest{
 		Target:        domain.TargetCodex,
-		Title:         "Heimdall Commerce",
+		Title:         "Northstar Commerce",
 		Description:   "Squad para operacao comercial e melhoria de funil.",
 		Documentation: []string{"playbook-vendas.md", "metas-q2.md", "dados-pipeline.csv", "faq-comercial.md"},
 		OutputDir:     outputDir,
@@ -120,7 +120,7 @@ func TestFilesystemGatewayApplyAgentsPolicyRendersAgentsTemplateWithProjectConte
 
 	text := string(content)
 	for _, fragment := range []string{
-		"title=Heimdall Commerce",
+		"title=Northstar Commerce",
 		"description=Squad para operacao comercial e melhoria de funil.",
 		"target=codex",
 		"root=" + outputDir,
@@ -178,10 +178,10 @@ func TestFilesystemGatewayApplyAgentsPolicyRendersFallbackWhenContextIsMissing(t
 	text := string(content)
 	for _, fragment := range []string{
 		"title=Projeto sem titulo informado",
-		"description=Contexto de negocio nao informado no heimdall start.",
+		"description=Contexto de negocio nao informado no northstar start.",
 		"target=nao-definido",
 		"root=" + outputDir,
-		"- Nenhuma documentacao registrada no heimdall start.",
+		"- Nenhuma documentacao registrada no northstar start.",
 		"persona=Lideranca de squad multidisciplinar orientada a problema, com fronteiras claras de responsabilidade e colaboracao entre especialistas.",
 	} {
 		if !strings.Contains(text, fragment) {
@@ -216,7 +216,7 @@ func TestFilesystemGatewayInitTarget(t *testing.T) {
 		t.Fatal("expected .claude/assistants to not be created")
 	}
 
-	manifestPath := filepath.Join(outputDir, ".heimdall", "context", "project-context.yaml")
+	manifestPath := filepath.Join(outputDir, ".northstar", "context", "project-context.yaml")
 	content, err := os.ReadFile(manifestPath)
 	if err != nil {
 		t.Fatalf("expected project-context.yaml to exist after init, got %v", err)
@@ -233,12 +233,12 @@ func TestFilesystemGatewayInitTarget(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expected .gitignore to exist after init, got %v", err)
 	}
-	if !strings.Contains(string(gitignoreContent), ".heimdall") {
-		t.Fatalf("expected .gitignore to contain .heimdall, got %s", string(gitignoreContent))
+	if !strings.Contains(string(gitignoreContent), ".northstar") {
+		t.Fatalf("expected .gitignore to contain .northstar, got %s", string(gitignoreContent))
 	}
 }
 
-func TestFilesystemGatewayInitTargetAppendsHeimdallToExistingGitignoreWithoutDuplicates(t *testing.T) {
+func TestFilesystemGatewayInitTargetAppendsNorthstarToExistingGitignoreWithoutDuplicates(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
@@ -274,12 +274,12 @@ func TestFilesystemGatewayInitTargetAppendsHeimdallToExistingGitignoreWithoutDup
 	if !strings.Contains(text, "node_modules/") {
 		t.Fatalf("expected existing .gitignore content to be preserved, got %s", text)
 	}
-	if strings.Count(text, ".heimdall") != 1 {
-		t.Fatalf("expected .heimdall to be present exactly once, got %s", text)
+	if strings.Count(text, ".northstar") != 1 {
+		t.Fatalf("expected .northstar to be present exactly once, got %s", text)
 	}
 }
 
-func TestFilesystemGatewayInitTargetCopiesTemplateSnapshotToHeimdall(t *testing.T) {
+func TestFilesystemGatewayInitTargetCopiesTemplateSnapshotToNorthstar(t *testing.T) {
 	t.Parallel()
 
 	templateRoot := t.TempDir()
@@ -309,11 +309,11 @@ func TestFilesystemGatewayInitTargetCopiesTemplateSnapshotToHeimdall(t *testing.
 		t.Fatalf("expected at least 3 created entries (.codex dirs + template snapshot), got %d", len(result.Created))
 	}
 
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "template", "AGENTS.md")); err != nil {
-		t.Fatalf("expected .heimdall/template/AGENTS.md to exist, got %v", err)
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "template", "AGENTS.md")); err != nil {
+		t.Fatalf("expected .northstar/template/AGENTS.md to exist, got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "template", "tools", "tool-a.yaml")); err != nil {
-		t.Fatalf("expected .heimdall/template/tools/tool-a.yaml to exist, got %v", err)
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "template", "tools", "tool-a.yaml")); err != nil {
+		t.Fatalf("expected .northstar/template/tools/tool-a.yaml to exist, got %v", err)
 	}
 }
 
@@ -343,15 +343,15 @@ instructions: |
 	platformAssistant := `type: assitent
 categories:
   - platform
-id: heimdall-list-lib
+id: northstar-list-lib
 name: List Library
 description: Executes list-lib command for platform discovery.
 instructions: |
-  Execute heimdall list-lib and return exact results for the user.
+  Execute northstar list-lib and return exact results for the user.
 skills: []
 tools:
   - shell`
-	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "heimdall-list-lib.yaml"), []byte(platformAssistant), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "northstar-list-lib.yaml"), []byte(platformAssistant), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -385,10 +385,10 @@ tools:
 	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "platform-helper", "SKILL.md")); err != nil {
 		t.Fatalf("expected platform skill platform-helper to be auto-installed, got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "heimdall-list-lib", "SKILL.md")); err != nil {
-		t.Fatalf("expected platform assistant heimdall-list-lib to be materialized as skill markdown, got %v", err)
+	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "northstar-list-lib", "SKILL.md")); err != nil {
+		t.Fatalf("expected platform assistant northstar-list-lib to be materialized as skill markdown, got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "assistants", "heimdall-list-lib.yaml")); err == nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "assistants", "northstar-list-lib.yaml")); err == nil {
 		t.Fatal("expected no assistant yaml for auto-installed platform assistant")
 	}
 	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "assistants", "doc-api.yaml")); err == nil {
@@ -508,33 +508,33 @@ func TestFilesystemGatewayUpdateAppRefreshesPlatformSkills(t *testing.T) {
 	currentPlatformTool := `type: skill
 categories:
   - platform
-name: heimdall-install
+name: northstar-install
 description: Install helper.
 instructions: |
   execute install helper`
-	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "heimdall-install.yaml"), []byte(currentPlatformTool), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(templateRoot, "tools", "northstar-install.yaml"), []byte(currentPlatformTool), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
 	outputDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(outputDir, ".codex", "skills", "heimdall-old"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(outputDir, ".codex", "skills", "northstar-old"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(outputDir, ".codex", "skills", "heimdall-old", "SKILL.md"), []byte("legacy"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(outputDir, ".codex", "skills", "northstar-old", "SKILL.md"), []byte("legacy"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := os.MkdirAll(filepath.Join(outputDir, ".heimdall", "template", "tools"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(outputDir, ".northstar", "template", "tools"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	previousPlatformTool := `type: skill
 categories:
   - platform
-name: heimdall-old
+name: northstar-old
 description: Old helper.
 instructions: |
   legacy helper`
-	if err := os.WriteFile(filepath.Join(outputDir, ".heimdall", "template", "tools", "heimdall-old.yaml"), []byte(previousPlatformTool), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(outputDir, ".northstar", "template", "tools", "northstar-old.yaml"), []byte(previousPlatformTool), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	nonPlatformTool := `type: skill
@@ -544,7 +544,7 @@ name: user-custom-doc
 description: User custom tool.
 instructions: |
   custom docs flow`
-	if err := os.WriteFile(filepath.Join(outputDir, ".heimdall", "template", "tools", "user-custom-doc.yaml"), []byte(nonPlatformTool), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(outputDir, ".northstar", "template", "tools", "user-custom-doc.yaml"), []byte(nonPlatformTool), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -557,13 +557,13 @@ instructions: |
 		t.Fatalf("expected update-app to succeed, got %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "heimdall-old")); err == nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "northstar-old")); err == nil {
 		t.Fatal("expected legacy platform skill to be removed")
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "heimdall-install", "SKILL.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".codex", "skills", "northstar-install", "SKILL.md")); err != nil {
 		t.Fatalf("expected current platform skill to be installed, got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "template", "tools", "user-custom-doc.yaml")); err != nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "template", "tools", "user-custom-doc.yaml")); err != nil {
 		t.Fatalf("expected non-platform custom tool to be preserved, got %v", err)
 	}
 

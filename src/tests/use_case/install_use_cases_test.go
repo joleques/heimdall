@@ -71,7 +71,7 @@ func TestInstallAssistantUseCaseInstallsAssistantAndAssociatedSkills(t *testing.
 	}
 
 	installGateway := &fakeInstallGateway{}
-	installGateway.projectContext = domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}}
+	installGateway.projectContext = domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
 	result, err := uc.Execute(context.Background(), usecase.InstallRequest{
@@ -106,7 +106,7 @@ func TestInstallAssistantUseCaseFailsOnUnknownAssistant(t *testing.T) {
 		Assistants: []usecase.AssistantAsset{{ID: "assistant-a", SourcePath: "/tmp/assistant-a.yaml"}},
 	}
 
-	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}}}
+	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}}}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
 	_, err := uc.Execute(context.Background(), usecase.InstallRequest{
@@ -127,7 +127,7 @@ func TestInstallAssistantUseCaseFailsOnUnknownAssistant(t *testing.T) {
 func TestInstallAssistantUseCaseFailsOnEmptyCatalog(t *testing.T) {
 	t.Parallel()
 
-	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}}}
+	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}}}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: usecase.Catalog{}}, installGateway, installGateway)
 
 	_, err := uc.Execute(context.Background(), usecase.InstallRequest{
@@ -154,7 +154,7 @@ func TestInstallAssistantUseCaseEmitsWarningForMissingAssociatedSkill(t *testing
 		},
 	}
 
-	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}}}
+	installGateway := &fakeInstallGateway{projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}}}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
 	result, err := uc.Execute(context.Background(), usecase.InstallRequest{
@@ -186,7 +186,7 @@ func TestInstallAssistantUseCaseUsesTargetFromProjectContextWhenNotProvided(t *t
 		projectContext: domain.ProjectContext{
 			Target:        domain.TargetClaude,
 			ProjectRoot:   "/tmp/client-project",
-			Title:         "Heimdall",
+			Title:         "Northstar",
 			Description:   "desc",
 			Documentation: []string{"README.md"},
 		},
@@ -224,7 +224,7 @@ func TestInstallAssistantUseCaseInstallsAllWhenNoFilterProvided(t *testing.T) {
 	}
 
 	installGateway := &fakeInstallGateway{
-		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}},
+		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}},
 	}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
@@ -255,7 +255,7 @@ func TestInstallAssistantUseCaseInstallsByCategory(t *testing.T) {
 	}
 
 	installGateway := &fakeInstallGateway{
-		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}},
+		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}},
 	}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
@@ -285,7 +285,7 @@ func TestInstallAssistantUseCaseInstallsSkillByID(t *testing.T) {
 	}
 
 	installGateway := &fakeInstallGateway{
-		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}},
+		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}},
 	}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 
@@ -315,7 +315,7 @@ func TestInstallAssistantUseCaseFailsWhenCategoryHasNoAssistants(t *testing.T) {
 	}
 
 	installGateway := &fakeInstallGateway{
-		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Heimdall", Description: "desc", Documentation: []string{"README.md"}},
+		projectContext: domain.ProjectContext{Target: domain.TargetCodex, Title: "Northstar", Description: "desc", Documentation: []string{"README.md"}},
 	}
 	uc := usecase.NewInstallAssistantUseCase(fakeCatalogGateway{catalog: catalog}, installGateway, installGateway)
 

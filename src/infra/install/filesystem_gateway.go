@@ -50,7 +50,7 @@ func (g FilesystemGateway) LoadProjectContext(_ context.Context, outputDir strin
 	data, err := os.ReadFile(layout.ManifestPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			return domain.ProjectContext{}, fmt.Errorf("project context not found at %q; run 'heimdall start' first", layout.ManifestPath)
+			return domain.ProjectContext{}, fmt.Errorf("project context not found at %q; run 'northstar start' first", layout.ManifestPath)
 		}
 		return domain.ProjectContext{}, fmt.Errorf("read project context manifest: %w", err)
 	}
@@ -165,7 +165,7 @@ func (g FilesystemGateway) InitTarget(ctx context.Context, request usecase.InitR
 	}
 	appendInitFileOutcome(&result, contextOutput)
 
-	gitignoreChanged, gitignorePath, err := ensureGitignoreHasHeimdall(request.OutputDir)
+	gitignoreChanged, gitignorePath, err := ensureGitignoreHasNorthstar(request.OutputDir)
 	if err != nil {
 		return usecase.InitResult{}, err
 	}
@@ -237,7 +237,7 @@ func (g FilesystemGateway) UpdateApp(ctx context.Context, request usecase.Update
 	}
 	currentPlatformSkills := platformToolsToSkillAssets(currentPlatformTools)
 
-	previousPlatformTools, err := g.loadPlatformToolsFromToolsDir(filepath.Join(resolveHeimdallLayout(request.OutputDir).TemplateDir, "tools"))
+	previousPlatformTools, err := g.loadPlatformToolsFromToolsDir(filepath.Join(resolveNorthstarLayout(request.OutputDir).TemplateDir, "tools"))
 	if err != nil {
 		return usecase.UpdateAppResult{}, err
 	}
@@ -550,7 +550,7 @@ func (g FilesystemGateway) refreshPlatformToolsSnapshot(outputDir string, curren
 		Warnings:  []string{},
 	}
 
-	toolsDir := filepath.Join(resolveHeimdallLayout(outputDir).TemplateDir, "tools")
+	toolsDir := filepath.Join(resolveNorthstarLayout(outputDir).TemplateDir, "tools")
 	if err := os.MkdirAll(toolsDir, 0o755); err != nil {
 		return usecase.UpdateAppResult{}, fmt.Errorf("create tools snapshot dir %q: %w", toolsDir, err)
 	}
@@ -675,8 +675,8 @@ func (g FilesystemGateway) loadTemplateCatalogFromToolsDir(toolsDir string) (tem
 }
 
 func managedToolsStatePath(outputDir string) string {
-	heimdall := resolveHeimdallLayout(outputDir)
-	return filepath.Join(heimdall.RootDir, "state", "managed-tools.yaml")
+	northstar := resolveNorthstarLayout(outputDir)
+	return filepath.Join(northstar.RootDir, "state", "managed-tools.yaml")
 }
 
 func loadManagedToolsState(outputDir string) (managedToolsState, error) {
@@ -1045,7 +1045,7 @@ func (g FilesystemGateway) renderAgentsTemplate(ctx context.Context, outputDir, 
 
 func applyAgentsTemplateContext(templateContent string, projectContext domain.ProjectContext) string {
 	title := fallbackValue(projectContext.Title, "Projeto sem titulo informado")
-	description := fallbackValue(projectContext.Description, "Contexto de negocio nao informado no heimdall start.")
+	description := fallbackValue(projectContext.Description, "Contexto de negocio nao informado no northstar start.")
 	target := fallbackValue(string(projectContext.Target), "nao-definido")
 	projectRoot := fallbackValue(projectContext.ProjectRoot, ".")
 	documentsSummary := summarizeDocumentation(projectContext.Documentation)
@@ -1069,7 +1069,7 @@ func applyAgentsTemplateContext(templateContent string, projectContext domain.Pr
 
 func summarizeDocumentation(documents []string) string {
 	if len(documents) == 0 {
-		return "- Nenhuma documentacao registrada no heimdall start."
+		return "- Nenhuma documentacao registrada no northstar start."
 	}
 
 	limit := len(documents)
@@ -1128,7 +1128,7 @@ type projectContextLayout struct {
 	ManifestPath string
 }
 
-type heimdallLayout struct {
+type northstarLayout struct {
 	RootDir     string
 	TemplateDir string
 }
@@ -1189,7 +1189,7 @@ func resolveProjectContextLayout(outputDir string) projectContextLayout {
 		outputDir = "."
 	}
 
-	rootDir := filepath.Join(outputDir, ".heimdall", "context")
+	rootDir := filepath.Join(outputDir, ".northstar", "context")
 	return projectContextLayout{
 		RootDir:      rootDir,
 		DocsDir:      filepath.Join(rootDir, "docs"),
@@ -1210,13 +1210,13 @@ func resolveProjectRoot(outputDir string) string {
 	return absolute
 }
 
-func resolveHeimdallLayout(outputDir string) heimdallLayout {
+func resolveNorthstarLayout(outputDir string) northstarLayout {
 	if outputDir == "" {
 		outputDir = "."
 	}
 
-	rootDir := filepath.Join(outputDir, ".heimdall")
-	return heimdallLayout{
+	rootDir := filepath.Join(outputDir, ".northstar")
+	return northstarLayout{
 		RootDir:     rootDir,
 		TemplateDir: filepath.Join(rootDir, "template"),
 	}
@@ -1526,13 +1526,13 @@ func (g FilesystemGateway) copyTemplateSnapshot(outputDir string, force bool) (f
 		return fileWriteOutput{}, nil
 	}
 
-	heimdall := resolveHeimdallLayout(outputDir)
-	created, err := copyDirWithIdempotency(sourceDir, heimdall.TemplateDir, force)
+	northstar := resolveNorthstarLayout(outputDir)
+	created, err := copyDirWithIdempotency(sourceDir, northstar.TemplateDir, force)
 	if err != nil {
-		return fileWriteOutput{}, fmt.Errorf("copy template snapshot to %q: %w", heimdall.TemplateDir, err)
+		return fileWriteOutput{}, fmt.Errorf("copy template snapshot to %q: %w", northstar.TemplateDir, err)
 	}
 
-	return fileWriteOutput{Path: heimdall.TemplateDir, Created: created}, nil
+	return fileWriteOutput{Path: northstar.TemplateDir, Created: created}, nil
 }
 
 func installAssistantWrapper(layout targetLayout, force bool, assistant usecase.AssistantAsset) (fileWriteOutput, error) {
@@ -1566,7 +1566,7 @@ func ensureSkillMarkdown(destinationDir string, skill usecase.SkillAsset, force 
 	return nil
 }
 
-func ensureGitignoreHasHeimdall(outputDir string) (bool, string, error) {
+func ensureGitignoreHasNorthstar(outputDir string) (bool, string, error) {
 	if outputDir == "" {
 		outputDir = "."
 	}
@@ -1575,7 +1575,7 @@ func ensureGitignoreHasHeimdall(outputDir string) (bool, string, error) {
 	data, err := os.ReadFile(gitignorePath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			if writeErr := os.WriteFile(gitignorePath, []byte(".heimdall\n"), 0o644); writeErr != nil {
+			if writeErr := os.WriteFile(gitignorePath, []byte(".northstar\n"), 0o644); writeErr != nil {
 				return false, "", fmt.Errorf("write .gitignore %q: %w", gitignorePath, writeErr)
 			}
 			return true, gitignorePath, nil
@@ -1585,7 +1585,7 @@ func ensureGitignoreHasHeimdall(outputDir string) (bool, string, error) {
 
 	lines := strings.Split(string(data), "\n")
 	for _, line := range lines {
-		if strings.TrimSpace(line) == ".heimdall" {
+		if strings.TrimSpace(line) == ".northstar" {
 			return false, gitignorePath, nil
 		}
 	}
@@ -1594,7 +1594,7 @@ func ensureGitignoreHasHeimdall(outputDir string) (bool, string, error) {
 	if !strings.HasSuffix(content, "\n") {
 		content += "\n"
 	}
-	content += ".heimdall\n"
+	content += ".northstar\n"
 
 	if writeErr := os.WriteFile(gitignorePath, []byte(content), 0o644); writeErr != nil {
 		return false, "", fmt.Errorf("update .gitignore %q: %w", gitignorePath, writeErr)

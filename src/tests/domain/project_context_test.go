@@ -12,7 +12,7 @@ func TestProjectContextValidate(t *testing.T) {
 
 	context := domain.ProjectContext{
 		Target:        domain.TargetCodex,
-		Title:         "Heimdall",
+		Title:         "Northstar",
 		Description:   "Coordena assistants com contexto canônico.",
 		Documentation: []string{"README.md"},
 	}
@@ -27,7 +27,7 @@ func TestProjectContextValidateAllowsEmptyDocumentation(t *testing.T) {
 
 	context := domain.ProjectContext{
 		Target:      domain.TargetCodex,
-		Title:       "Heimdall",
+		Title:       "Northstar",
 		Description: "Coordena assistants com contexto canônico.",
 	}
 
@@ -63,8 +63,8 @@ func TestProjectContextNormalized(t *testing.T) {
 
 	normalized := domain.ProjectContext{
 		Target:        " codex ",
-		ProjectRoot:   "  /tmp/heimdall  ",
-		Title:         "  Heimdall App  ",
+		ProjectRoot:   "  /tmp/northstar  ",
+		Title:         "  Northstar App  ",
 		Description:   "  Contexto principal.  ",
 		Documentation: []string{" README.md ", "README.md", " docs/vision.md "},
 	}.Normalized()
@@ -73,10 +73,10 @@ func TestProjectContextNormalized(t *testing.T) {
 		t.Fatalf("expected trimmed target codex, got %q", normalized.Target)
 	}
 
-	if normalized.Title != "Heimdall App" {
+	if normalized.Title != "Northstar App" {
 		t.Fatalf("expected trimmed title, got %q", normalized.Title)
 	}
-	if normalized.ProjectRoot != "/tmp/heimdall" {
+	if normalized.ProjectRoot != "/tmp/northstar" {
 		t.Fatalf("expected trimmed project root, got %q", normalized.ProjectRoot)
 	}
 

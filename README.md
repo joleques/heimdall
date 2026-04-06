@@ -1,6 +1,6 @@
-# Heimdall
+# Northstar AI
 
-Heimdall é uma CLI escrita em Go para preparar projetos para uso com Assistants de IA.
+Northstar AI (nome do produto) é uma CLI escrita em Go para preparar projetos para uso com Assistants de IA.
 
 O foco do produto, no estado atual do MVP, é simples:
 
@@ -9,12 +9,11 @@ O foco do produto, no estado atual do MVP, é simples:
 - listar a biblioteca de Assistants disponíveis
 - instalar Assistants com suas skills associadas
 
-Em vez de fazer o usuário montar diretórios na unha, copiar arquivo em lugar arbitrário e torcer para a IDE entender, o Heimdall organiza isso de forma previsível.
+Em vez de fazer o usuário montar diretórios na unha, copiar arquivo em lugar arbitrário e torcer para a IDE entender, o Northstar AI organiza isso de forma previsível.
 
+## O que o Northstar AI faz
 
-## O que o Heimdall faz
-
-Hoje o Heimdall trabalha com a linguagem ubíqua `Assistant` como entidade principal.
+Hoje o Northstar AI trabalha com a linguagem ubíqua `Assistant` como entidade principal.
 
 Cada `Assistant`:
 
@@ -33,7 +32,7 @@ Targets suportados no MVP:
 
 Interface de uso para usuário final:
 
-- terminal: `heimdall init <target>`
+- terminal: `northstar init <target>`
 - chat com Agente de IA: execução das tools de plataforma
 
 Comandos como `start`, `list-lib`, `install` e `update-app` continuam existindo na CLI, mas no fluxo recomendado eles são acionados pelo Agente de IA através das tools de plataforma.
@@ -47,7 +46,7 @@ src/
 ├── infra/             # catálogo e filesystem gateway
 ├── templates/default/ # biblioteca padrão de assistants/skills
 ├── tests/             # testes unitários e de integração leve
-└── cmd/heimdall/      # entrypoint do binário
+└── cmd/northstar/      # entrypoint do binário
 ```
 
 ## Fluxo de uso
@@ -57,7 +56,7 @@ src/
 Exemplo com `codex`:
 
 ```bash
-heimdall init codex
+northstar init codex
 ```
 
 Isso prepara a estrutura básica do target no projeto.
@@ -77,48 +76,48 @@ Depois do `init`, o fluxo recomendado é conversar com o Agente de IA para execu
 Exemplo de mensagem:
 
 ```text
-$heimdall-start
+$northstar-start
 Registre o contexto do projeto.
 ```
 
 Tools de plataforma (categoria `platform`) para uso via chat:
 
-- `heimdall-start`: registra contexto em `.heimdall/context` (equivalente ao comando `start`)
-- `heimdall-list-lib`: lista biblioteca local de assistants/skills (equivalente ao comando `list-lib`)
-- `heimdall-install`: instala artifacts da biblioteca (equivalente ao comando `install`)
+- `northstar-start`: registra contexto em `.northstar/context` (equivalente ao comando `start`)
+- `northstar-list-lib`: lista biblioteca local de assistants/skills (equivalente ao comando `list-lib`)
+- `northstar-install`: instala artifacts da biblioteca (equivalente ao comando `install`)
 
 Exemplos de prompt no chat (target `codex` já inicializado):
 
 ```text
-$heimdall-start
+$northstar-start
 Registre:
-title = "Heimdall App"
+title = "Northstar AI"
 description = "CLI para preparar projetos para Assistants de IA."
 doc = README.md
 ```
 
 ```text
-$heimdall-list-lib
+$northstar-list-lib
 Mostre assistants e skills da categoria documentation.
 ```
 
 ```text
-$heimdall-install
+$northstar-install
 Instale os itens da categoria documentation.
 ```
 
 Fluxo sugerido no chat:
 
-1. Pedir `heimdall-start` para criar/atualizar o contexto do projeto.
-2. Pedir `heimdall-list-lib` para descobrir o catálogo disponível.
-3. Pedir `heimdall-install` para instalar por id, por categoria ou instalação geral.
+1. Pedir `northstar-start` para criar/atualizar o contexto do projeto.
+2. Pedir `northstar-list-lib` para descobrir o catálogo disponível.
+3. Pedir `northstar-install` para instalar por id, por categoria ou instalação geral.
 
 Observação: o `target` usado nas tools vem do contexto salvo no `init` (ex.: `codex`), sem precisar repetir isso manualmente a cada execução.
 
 ## Comando de CLI para usuário final
 
 ```bash
-heimdall init <codex|antigravity|claude|cursor> \
+northstar init <codex|antigravity|claude|cursor> \
   [--agents-policy <skip|if-missing|overwrite>] \
   [--force] \
   [--output <dir>]
@@ -129,29 +128,29 @@ heimdall init <codex|antigravity|claude|cursor> \
 Executando sem gerar binário:
 
 ```bash
-go run ./src/cmd/heimdall
+go run ./src/cmd/northstar
 ```
 
 Exemplo real:
 
 ```bash
-go run ./src/cmd/heimdall init codex
+go run ./src/cmd/northstar init codex
 ```
 
 ## Como gerar o executável
 
-O entrypoint do projeto está em `./src/cmd/heimdall`.
+O entrypoint do projeto está em `./src/cmd/northstar`.
 
 ### Build local para o sistema atual
 
 ```bash
-go build -o heimdall ./src/cmd/heimdall
+go build -o northstar ./src/cmd/northstar
 ```
 
 No Windows:
 
 ```bash
-go build -o heimdall.exe ./src/cmd/heimdall
+go build -o northstar.exe ./src/cmd/northstar
 ```
 
 ### Gerar executáveis para Linux, Windows e macOS
@@ -165,37 +164,37 @@ mkdir -p dist
 #### Linux amd64
 
 ```bash
-GOOS=linux GOARCH=amd64 go build -o dist/heimdall-linux-amd64 ./src/cmd/heimdall
+GOOS=linux GOARCH=amd64 go build -o dist/northstar-linux-amd64 ./src/cmd/northstar
 ```
 
 #### Linux arm64
 
 ```bash
-GOOS=linux GOARCH=arm64 go build -o dist/heimdall-linux-arm64 ./src/cmd/heimdall
+GOOS=linux GOARCH=arm64 go build -o dist/northstar-linux-arm64 ./src/cmd/northstar
 ```
 
 #### Windows amd64
 
 ```bash
-GOOS=windows GOARCH=amd64 go build -o dist/heimdall-windows-amd64.exe ./src/cmd/heimdall
+GOOS=windows GOARCH=amd64 go build -o dist/northstar-windows-amd64.exe ./src/cmd/northstar
 ```
 
 #### Windows arm64
 
 ```bash
-GOOS=windows GOARCH=arm64 go build -o dist/heimdall-windows-arm64.exe ./src/cmd/heimdall
+GOOS=windows GOARCH=arm64 go build -o dist/northstar-windows-arm64.exe ./src/cmd/northstar
 ```
 
 #### macOS amd64
 
 ```bash
-GOOS=darwin GOARCH=amd64 go build -o dist/heimdall-darwin-amd64 ./src/cmd/heimdall
+GOOS=darwin GOARCH=amd64 go build -o dist/northstar-darwin-amd64 ./src/cmd/northstar
 ```
 
 #### macOS arm64
 
 ```bash
-GOOS=darwin GOARCH=arm64 go build -o dist/heimdall-darwin-arm64 ./src/cmd/heimdall
+GOOS=darwin GOARCH=arm64 go build -o dist/northstar-darwin-arm64 ./src/cmd/northstar
 ```
 
 ### Gerar todos de uma vez
@@ -205,12 +204,12 @@ Linux/macOS shell:
 ```bash
 mkdir -p dist
 
-GOOS=linux GOARCH=amd64 go build -o dist/heimdall-linux-amd64 ./src/cmd/heimdall
-GOOS=linux GOARCH=arm64 go build -o dist/heimdall-linux-arm64 ./src/cmd/heimdall
-GOOS=windows GOARCH=amd64 go build -o dist/heimdall-windows-amd64.exe ./src/cmd/heimdall
-GOOS=windows GOARCH=arm64 go build -o dist/heimdall-windows-arm64.exe ./src/cmd/heimdall
-GOOS=darwin GOARCH=amd64 go build -o dist/heimdall-darwin-amd64 ./src/cmd/heimdall
-GOOS=darwin GOARCH=arm64 go build -o dist/heimdall-darwin-arm64 ./src/cmd/heimdall
+GOOS=linux GOARCH=amd64 go build -o dist/northstar-linux-amd64 ./src/cmd/northstar
+GOOS=linux GOARCH=arm64 go build -o dist/northstar-linux-arm64 ./src/cmd/northstar
+GOOS=windows GOARCH=amd64 go build -o dist/northstar-windows-amd64.exe ./src/cmd/northstar
+GOOS=windows GOARCH=arm64 go build -o dist/northstar-windows-arm64.exe ./src/cmd/northstar
+GOOS=darwin GOARCH=amd64 go build -o dist/northstar-darwin-amd64 ./src/cmd/northstar
+GOOS=darwin GOARCH=arm64 go build -o dist/northstar-darwin-arm64 ./src/cmd/northstar
 ```
 
 ## Como validar antes de testar

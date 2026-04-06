@@ -161,7 +161,7 @@ func TestAppRunStartProject(t *testing.T) {
 	listUC := &mockListLibrary{}
 	updateUC := &mockUpdateApp{}
 	var out bytes.Buffer
-	in := bytes.NewBufferString("Heimdall\nProject context\n")
+	in := bytes.NewBufferString("Northstar\nProject context\n")
 	app := application.NewAppWithUseCases(in, &out, installUC, initUC, startUC, listUC, updateUC)
 
 	code := app.Run([]string{"start"})
@@ -353,8 +353,8 @@ func TestAppRunUpdateApp(t *testing.T) {
 	startUC := &mockStartProject{}
 	listUC := &mockListLibrary{}
 	updateUC := &mockUpdateApp{result: usecase.UpdateAppResult{
-		Removed:   []string{"skill:heimdall-install"},
-		Installed: []string{"skill:heimdall-install"},
+		Removed:   []string{"skill:northstar-install"},
+		Installed: []string{"skill:northstar-install"},
 	}}
 
 	var out bytes.Buffer
@@ -377,8 +377,8 @@ func TestAppRunUpdateApp(t *testing.T) {
 	output := out.String()
 	for _, fragment := range []string{
 		"update-app completed",
-		"removed: skill:heimdall-install",
-		"installed: skill:heimdall-install",
+		"removed: skill:northstar-install",
+		"installed: skill:northstar-install",
 	} {
 		if !strings.Contains(output, fragment) {
 			t.Fatalf("expected output to contain %q, got %s", fragment, output)
@@ -394,7 +394,7 @@ func TestAppRunUpdateAppReturnsErrorCodeWhenHasFailures(t *testing.T) {
 	startUC := &mockStartProject{}
 	listUC := &mockListLibrary{}
 	updateUC := &mockUpdateApp{result: usecase.UpdateAppResult{
-		Failed: []string{"skill:heimdall-install"},
+		Failed: []string{"skill:northstar-install"},
 	}}
 
 	var out bytes.Buffer
@@ -404,7 +404,7 @@ func TestAppRunUpdateAppReturnsErrorCodeWhenHasFailures(t *testing.T) {
 	if code != 1 {
 		t.Fatalf("expected exit code 1, got %d", code)
 	}
-	if !strings.Contains(out.String(), "failed: skill:heimdall-install") {
+	if !strings.Contains(out.String(), "failed: skill:northstar-install") {
 		t.Fatalf("expected failed item in output, got %s", out.String())
 	}
 }

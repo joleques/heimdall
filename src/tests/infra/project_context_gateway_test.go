@@ -23,7 +23,7 @@ func TestFilesystemGatewaySaveProjectContext(t *testing.T) {
 	gateway := infrainstall.NewFilesystemGateway()
 	result, err := gateway.SaveProjectContext(context.Background(), usecase.StartRequest{
 		Target:        "codex",
-		Title:         "Heimdall",
+		Title:         "Northstar",
 		Description:   "Contexto base do projeto.",
 		Documentation: []string{docSource, "Arquitetura em evolucao"},
 		OutputDir:     outputDir,
@@ -36,7 +36,7 @@ func TestFilesystemGatewaySaveProjectContext(t *testing.T) {
 		t.Fatalf("expected at least 3 created entries, got %d", len(result.Created))
 	}
 
-	manifestPath := filepath.Join(outputDir, ".heimdall", "context", "project-context.yaml")
+	manifestPath := filepath.Join(outputDir, ".northstar", "context", "project-context.yaml")
 	content, err := os.ReadFile(manifestPath)
 	if err != nil {
 		t.Fatalf("expected manifest to exist, got %v", err)
@@ -45,7 +45,7 @@ func TestFilesystemGatewaySaveProjectContext(t *testing.T) {
 	for _, fragment := range []string{
 		"target: codex",
 		"project_root: " + outputDir,
-		"title: Heimdall",
+		"title: Northstar",
 		"stored_path: docs/01-README.md",
 		"kind: note",
 	} {
@@ -54,14 +54,14 @@ func TestFilesystemGatewaySaveProjectContext(t *testing.T) {
 		}
 	}
 
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "context", "docs", "01-README.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "context", "docs", "01-README.md")); err != nil {
 		t.Fatalf("expected copied documentation to exist, got %v", err)
 	}
 
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "context", "docs", "02-note.md")); err != nil {
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "context", "docs", "02-note.md")); err != nil {
 		t.Fatalf("expected note documentation to exist, got %v", err)
 	}
-	if _, err := os.Stat(filepath.Join(outputDir, ".heimdall", "context", "README.md")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(outputDir, ".northstar", "context", "README.md")); !os.IsNotExist(err) {
 		t.Fatalf("expected context README to not be generated, got err=%v", err)
 	}
 }
@@ -73,7 +73,7 @@ func TestFilesystemGatewaySaveProjectContextIdempotent(t *testing.T) {
 	gateway := infrainstall.NewFilesystemGateway()
 	request := usecase.StartRequest{
 		Target:        "codex",
-		Title:         "Heimdall",
+		Title:         "Northstar",
 		Description:   "Contexto base do projeto.",
 		Documentation: []string{"README.md"},
 		OutputDir:     outputDir,
@@ -127,7 +127,7 @@ func TestFilesystemGatewaySaveProjectContextUpdatesManifestValues(t *testing.T) 
 		t.Fatalf("expected second save to succeed, got %v", err)
 	}
 
-	manifestPath := filepath.Join(outputDir, ".heimdall", "context", "project-context.yaml")
+	manifestPath := filepath.Join(outputDir, ".northstar", "context", "project-context.yaml")
 	content, err := os.ReadFile(manifestPath)
 	if err != nil {
 		t.Fatalf("expected manifest to exist, got %v", err)
@@ -150,7 +150,7 @@ func TestFilesystemGatewayLoadProjectContext(t *testing.T) {
 
 	_, err := gateway.SaveProjectContext(context.Background(), usecase.StartRequest{
 		Target:        "cursor",
-		Title:         "Heimdall",
+		Title:         "Northstar",
 		Description:   "Contexto base do projeto.",
 		Documentation: []string{"README.md"},
 		OutputDir:     outputDir,
@@ -176,10 +176,10 @@ func TestFilesystemGatewayLoadProjectContextWithOnlyTarget(t *testing.T) {
 	t.Parallel()
 
 	outputDir := t.TempDir()
-	if err := os.MkdirAll(filepath.Join(outputDir, ".heimdall", "context"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(outputDir, ".northstar", "context"), 0o755); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(outputDir, ".heimdall", "context", "project-context.yaml"), []byte("target: codex\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(outputDir, ".northstar", "context", "project-context.yaml"), []byte("target: codex\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 

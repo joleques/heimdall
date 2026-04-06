@@ -98,7 +98,7 @@ func TestTemplateCatalogGatewayLoadPrefersClientTemplate(t *testing.T) {
 	}
 
 	clientRoot := t.TempDir()
-	clientToolsDir := filepath.Join(clientRoot, ".heimdall", "template", "tools")
+	clientToolsDir := filepath.Join(clientRoot, ".northstar", "template", "tools")
 	if err := os.MkdirAll(clientToolsDir, 0o755); err != nil {
 		t.Fatal(err)
 	}

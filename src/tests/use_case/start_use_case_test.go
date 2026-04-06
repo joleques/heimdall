@@ -33,12 +33,12 @@ func (f *fakeStartGateway) LoadProjectContext(_ context.Context, _ string) (doma
 func TestStartProjectUseCaseExecute(t *testing.T) {
 	t.Parallel()
 
-	gateway := &fakeStartGateway{result: usecase.StartResult{Created: []string{".heimdall/context/project-context.yaml"}}}
+	gateway := &fakeStartGateway{result: usecase.StartResult{Created: []string{".northstar/context/project-context.yaml"}}}
 	uc := usecase.NewStartProjectUseCase(gateway)
 
 	result, err := uc.Execute(context.Background(), usecase.StartRequest{
 		Target:        "  codex  ",
-		Title:         "  Heimdall  ",
+		Title:         "  Northstar  ",
 		Description:   "  Contexto base do projeto.  ",
 		Documentation: []string{" README.md ", "README.md"},
 	})
@@ -50,7 +50,7 @@ func TestStartProjectUseCaseExecute(t *testing.T) {
 		t.Fatal("expected gateway to be called")
 	}
 
-	if gateway.request.Title != "Heimdall" {
+	if gateway.request.Title != "Northstar" {
 		t.Fatalf("expected normalized title, got %q", gateway.request.Title)
 	}
 
@@ -87,7 +87,7 @@ func TestStartProjectUseCaseLoadsTargetFromProjectContext(t *testing.T) {
 	t.Parallel()
 
 	gateway := &fakeStartGateway{
-		result: usecase.StartResult{Created: []string{".heimdall/context/project-context.yaml"}},
+		result: usecase.StartResult{Created: []string{".northstar/context/project-context.yaml"}},
 		context: domain.ProjectContext{
 			Target: domain.TargetCursor,
 		},
@@ -95,7 +95,7 @@ func TestStartProjectUseCaseLoadsTargetFromProjectContext(t *testing.T) {
 	uc := usecase.NewStartProjectUseCase(gateway)
 
 	_, err := uc.Execute(context.Background(), usecase.StartRequest{
-		Title:       "Heimdall",
+		Title:       "Northstar",
 		Description: "Contexto base do projeto.",
 	})
 	if err != nil {
