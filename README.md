@@ -2,6 +2,8 @@
 
 Northstar AI (nome do produto) é uma CLI escrita em Go para preparar projetos para uso com Assistants de IA.
 
+Para a documentação de usuário final, onboarding e primeiros passos, consulte [documentacao/northstar-ai/user-docs/README.md](./documentacao/northstar-ai/user-docs/README.md).
+
 O foco do produto, no estado atual do MVP, é simples:
 
 - inicializar a estrutura de um target de agente
