@@ -1,5 +1,5 @@
 ---
-name: Documentador RAG
+name: documentador-rag
 description: Converte dados não estruturados em documentos Markdown canônicos para ingestão em Base Vetorial com chunking semântico
 ---
 

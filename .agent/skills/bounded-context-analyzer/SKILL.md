@@ -1,5 +1,5 @@
 ---
-name: Bounded Context Analyzer
+name: bounded-context-analyzer
 description: Analisa múltiplos serviços ligados em um diretório (ex. services/), extrai a linguagem ubíqua, domínios, agregados e gera o arquivo context.md refletindo o Bounded Context atual.
 ---
 # 🧠 Bounded Context Analyzer

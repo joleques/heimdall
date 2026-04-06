@@ -1,5 +1,5 @@
 ---
-name: Go Initializer
+name: go-initializer
 description: Cria código base Go para inicializar um novo projeto com estrutura padronizada (go.mod, main.go, Makefile)
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: Devcontainer Specialist
+name: devcontainer-specialist
 description: Cria, atualiza e melhora configurações de Dev Container (.devcontainer) seguindo o padrão da empresa
 ---
 
@@ -487,4 +487,3 @@ try {
 5. **SEMPRE** configure permissões para o usuário `vscode`
 6. **SEMPRE** inclua `git config --global --add safe.directory '*'`
 7. **SEMPRE** inclua `bash scripts/install-extensions.sh` no `postStartCommand`
-

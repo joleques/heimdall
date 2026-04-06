@@ -42,6 +42,27 @@ Este agente possui habilidades especializadas em:
 * `bounded-context-analyzer`: Analisa múltiplos serviços de um Bounded Context, extrai Linguagem Ubíqua, agregados e gera o `context.md` canônico.
 * `devcontainer-merger`: Unifica DevContainers de múltiplos serviços em um Root DevContainer — sem imagens inchadas, sem achismo.
 
+## 🔧 Compatibilidade Codex (Projeto Local)
+
+Neste projeto, a configuração de execução no Codex segue estas regras:
+
+* **Skills fonte (versionadas):** `/workspaces/northstar-ai/.agent/skills`
+* **Skills carregadas localmente pelo projeto:** `/workspaces/northstar-ai/.codex/skills`
+* **Workflows de referência (playbook):** `/workspaces/northstar-ai/.agent/workflows`
+
+**Importante:** no Codex, `workflow` não é entidade nativa executável.
+A execução deve ocorrer por **skills orquestradoras** (`workflow-*`), enquanto os arquivos em `.agent/workflows` permanecem como documentação de fluxo.
+
+### Skills Orquestradoras de Workflow
+
+* `workflow-doc-api`: Orquestra `api-documentador` + `api-documentador-revisor`.
+* `workflow-doc-produto`: Orquestra pipeline de documentação de produto (modo completo/rápido).
+* `workflow-write-tech-article`: Orquestra pesquisa, escrita e revisão de artigo.
+* `workflow-init-bounded-context`: Orquestra inicialização de contexto e análise de domínio.
+* `workflow-init-project`: Orquestra inicialização de projeto (go/devcontainer/k8s).
+* `workflow-fine-tuning-gemini`: Orquestra pipeline de dataset para fine-tuning.
+* `workflow-analise-migracao-aws`: Orquestra análise/revisão Maker-Checker de migração AWS.
+
 ## ✅ Checklist Pós-Implementação
 
 **Regra obrigatória:** Ao final de TODA implementação, antes de entregar ao usuário:

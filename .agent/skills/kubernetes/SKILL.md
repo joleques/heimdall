@@ -1,5 +1,5 @@
 ---
-name: Kubernetes Specialist
+name: kubernetes-specialist
 description: Cria a estrutura infra/k8s/ na raiz do projeto com manifests Kubernetes seguindo o padrão da empresa (Kustomize)
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: DevContainer Merger
+name: devcontainer-merger
 description: Analisa os serviços de um Bounded Context e, se existirem configurações de devcontainer individuais, cria um DevContainer unificado na raiz do contexto.
 ---
 # 🐳 DevContainer Merger

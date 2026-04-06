@@ -1,5 +1,5 @@
 ---
-name: Revisor de Documentação RAG
+name: documentador-rag-revisor
 description: Valida documentos Markdown produzidos para RAG, garantindo conformidade estrutural e semântica
 ---
 

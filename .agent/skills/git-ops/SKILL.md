@@ -1,5 +1,5 @@
 ---
-name: Git Ops
+name: git-ops
 description: Executa operações Git (status, pull, add, commit, push, tag, log, branch, checkout, diff, stash, merge, rebase, revert) com resolução inteligente de diretório.
 ---
 
