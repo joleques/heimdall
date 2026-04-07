@@ -118,6 +118,39 @@ func TestTemplateCatalogGatewayLoadPrefersClientTemplate(t *testing.T) {
 	}
 }
 
+func TestTemplateCatalogGatewayLoadSetsSkillSourceDirFromSiblingAssetsDirectory(t *testing.T) {
+	t.Parallel()
+
+	root := t.TempDir()
+	toolsDir := filepath.Join(root, "tools")
+	if err := os.MkdirAll(filepath.Join(toolsDir, "skill-a", "scripts"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+
+	skillA := "type: skill\ncategories:\n  - media\nname: skill-a\ndescription: Skill A description\ninstructions: |\n  Execute Skill A.\n"
+	if err := os.WriteFile(filepath.Join(toolsDir, "skill-a.yaml"), []byte(skillA), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(toolsDir, "skill-a", "scripts", "run.sh"), []byte("#!/bin/sh\necho ok\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	gateway := infratemplate.NewCatalogGateway(root)
+	catalog, err := gateway.Load(context.Background(), "")
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+
+	if len(catalog.Skills) != 1 {
+		t.Fatalf("expected 1 skill, got %d", len(catalog.Skills))
+	}
+
+	expectedDir := filepath.Join(toolsDir, "skill-a")
+	if catalog.Skills[0].SourceDir != expectedDir {
+		t.Fatalf("expected SourceDir %q, got %q", expectedDir, catalog.Skills[0].SourceDir)
+	}
+}
+
 func TestTemplateCatalogGatewayLoadFallsBackToRuntimeWhenClientTemplateMissing(t *testing.T) {
 	t.Parallel()
 

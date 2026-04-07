@@ -237,6 +237,7 @@ func (g CatalogGateway) loadTools() ([]usecase.SkillAsset, []usecase.AssistantAs
 			}
 			skills = append(skills, usecase.SkillAsset{
 				Name:       skillName,
+				SourceDir:  resolveToolAssetsDir(toolsDir, entry.Name(), skillName),
 				Contract:   &contract,
 				Categories: normalizedCategories,
 			})
@@ -262,6 +263,29 @@ func (g CatalogGateway) loadTools() ([]usecase.SkillAsset, []usecase.AssistantAs
 	sort.Slice(skills, func(i, j int) bool { return skills[i].Name < skills[j].Name })
 	sort.Slice(assistants, func(i, j int) bool { return assistants[i].ID < assistants[j].ID })
 	return skills, assistants, nil
+}
+
+func resolveToolAssetsDir(toolsDir string, fileName string, itemName string) string {
+	candidates := []string{
+		filepath.Join(toolsDir, strings.TrimSuffix(fileName, filepath.Ext(fileName))),
+	}
+
+	trimmedName := strings.TrimSpace(itemName)
+	if trimmedName != "" {
+		namedDir := filepath.Join(toolsDir, trimmedName)
+		if namedDir != candidates[0] {
+			candidates = append(candidates, namedDir)
+		}
+	}
+
+	for _, candidate := range candidates {
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 type assistantYAML struct {

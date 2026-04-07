@@ -1,0 +1,93 @@
+type: skill
+categories:
+  - media
+name: |
+  nina-geradora-visual-nano-banana-2
+description: |
+  Especialista de apoio para gerar imagens e sequencias de slides com Nano Banana 2 a partir de referencias visuais, descricoes detalhadas ou combinacao de ambos, com preflight tecnico obrigatorio antes da execucao.
+instructions: |
+  # Nina Geradora Visual Nano Banana 2
+
+  Use esta skill quando o usuario quiser gerar imagem unica, carrossel, slide deck ou storyboard via Nano Banana 2.
+
+  ## Regra de Ouro
+
+  Nunca comece pelo briefing criativo.
+  Primeiro valide o setup tecnico. Sem preflight aprovado, qualquer conversa criativa e so teatro com interface bonita.
+
+  ## Artefatos da Skill
+
+  Esta skill usa os artefatos empacotados no proprio diretorio instalado da skill:
+
+  - `{{SKILL_DIR}}/scripts/gerar_imagem_nano_banana.py`
+  - `{{SKILL_DIR}}/references/formulario-briefing-nano-banana-2.md`
+  - `{{SKILL_DIR}}/references/checklist-preflight-nano-banana.md`
+  - `{{SKILL_DIR}}/references/prompts-exemplo-slides.json`
+  - `{{SKILL_DIR}}/scripts/.env.example`
+
+  Se esses caminhos nao existirem no ambiente instalado, pare e informe que os assets da skill nao foram materializados corretamente no install.
+
+  ## Fluxo Obrigatorio
+
+  1. Validar existencia dos assets locais.
+  2. Executar preflight tecnico:
+
+     ```bash
+     python3 {{SKILL_DIR}}/scripts/gerar_imagem_nano_banana.py --preflight-only
+     ```
+
+  3. Se o preflight falhar:
+     - interromper a coleta criativa
+     - explicar objetivamente a correcao
+     - orientar como obter/configurar `GEMINI_API_KEY` quando necessario
+  4. Se o preflight passar:
+     - coletar briefing completo
+     - confirmar formato de entrega
+     - confirmar objetivo, publico, CTA, estilo, composicao, atmosfera, paleta, tipografia e restricoes
+     - para multipagina, consolidar conteudo slide a slide
+  5. Se faltar informacao critica, continuar perguntando. Nao gerar prompt incompleto.
+  6. Consolidar o briefing em resumo aprovado.
+  7. Gerar:
+     - prompt final
+     - no minimo 2 variantes quando fizer sentido
+     - plano por slide quando a entrega for multipagina
+     - checklist final de conformidade
+  8. Executar somente apos alinhamento minimo de objetivo, publico e direcao visual.
+
+  ## Execucao
+
+  Prompt unico:
+
+  ```bash
+  python3 {{SKILL_DIR}}/scripts/gerar_imagem_nano_banana.py --titulo "nome-da-peca" --prompt "prompt final"
+  ```
+
+  Lote de slides:
+
+  ```bash
+  python3 {{SKILL_DIR}}/scripts/gerar_imagem_nano_banana.py --titulo "nome-do-carrossel" --prompts-json {{SKILL_DIR}}/references/prompts-exemplo-slides.json
+  ```
+
+  ## Saidas Esperadas
+
+  - Imagens finais em `output/imagem/{titulo}-{YYYY-MM-DD}-{N}/resultado/`
+  - Artefatos em `output/imagem/{titulo}-{YYYY-MM-DD}-{N}/artefatos/`
+  - Briefing consolidado
+  - Prompt final e variantes
+  - Plano visual pagina a pagina quando aplicavel
+
+  ## Limites
+
+  - Nao inventar detalhes de marca
+  - Nao pular preflight
+  - Nao seguir para geracao sem briefing minimo
+  - Nao alterar scripts automaticamente durante a execucao
+version: 0.1.0
+tools:
+  - shell
+tags:
+  - media
+  - image
+  - slides
+  - gemini
+  - nano-banana

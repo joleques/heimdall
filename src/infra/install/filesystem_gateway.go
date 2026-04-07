@@ -645,6 +645,7 @@ func (g FilesystemGateway) loadTemplateCatalogFromToolsDir(toolsDir string) (tem
 
 			catalog.SkillsByName[skillName] = usecase.SkillAsset{
 				Name: skillName,
+				SourceDir: resolveTemplateToolAssetsDir(toolsDir, entry.Name(), skillName),
 				Contract: &usecase.SkillContract{
 					Name:         skillName,
 					Description:  strings.TrimSpace(tool.Description),
@@ -672,6 +673,29 @@ func (g FilesystemGateway) loadTemplateCatalogFromToolsDir(toolsDir string) (tem
 	}
 
 	return catalog, nil
+}
+
+func resolveTemplateToolAssetsDir(toolsDir string, fileName string, itemName string) string {
+	candidates := []string{
+		filepath.Join(toolsDir, strings.TrimSuffix(fileName, filepath.Ext(fileName))),
+	}
+
+	trimmedName := strings.TrimSpace(itemName)
+	if trimmedName != "" {
+		namedDir := filepath.Join(toolsDir, trimmedName)
+		if namedDir != candidates[0] {
+			candidates = append(candidates, namedDir)
+		}
+	}
+
+	for _, candidate := range candidates {
+		info, err := os.Stat(candidate)
+		if err == nil && info.IsDir() {
+			return candidate
+		}
+	}
+
+	return ""
 }
 
 func managedToolsStatePath(outputDir string) string {
