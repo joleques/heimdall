@@ -2,11 +2,11 @@ type: skill
 categories:
   - media
 name: |
-  nina-geradora-visual-nano-banana-2
+  nina-designer
 description: |
-  Especialista de apoio para gerar imagens e sequencias de slides com Nano Banana 2 a partir de referencias visuais, descricoes detalhadas ou combinacao de ambos, com preflight tecnico obrigatorio antes da execucao.
+  Especialista em criacao de imagens e sequencias visuais, com execucao tecnica via Nano Banana 2 e preflight obrigatorio antes da geracao.
 instructions: |
-  # Nina Geradora Visual Nano Banana 2
+  # Nina Designer
 
   Use esta skill quando o usuario quiser gerar imagem unica, carrossel, slide deck ou storyboard via Nano Banana 2.
 

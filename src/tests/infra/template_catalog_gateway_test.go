@@ -123,15 +123,15 @@ func TestTemplateCatalogGatewayLoadSetsSkillSourceDirFromSiblingAssetsDirectory(
 
 	root := t.TempDir()
 	toolsDir := filepath.Join(root, "tools")
-	if err := os.MkdirAll(filepath.Join(toolsDir, "skill-a", "scripts"), 0o755); err != nil {
+	if err := os.MkdirAll(filepath.Join(toolsDir, "nina-designer", "scripts"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 
-	skillA := "type: skill\ncategories:\n  - media\nname: skill-a\ndescription: Skill A description\ninstructions: |\n  Execute Skill A.\n"
-	if err := os.WriteFile(filepath.Join(toolsDir, "skill-a.yaml"), []byte(skillA), 0o644); err != nil {
+	skillA := "type: skill\ncategories:\n  - media\nname: nina-designer\ndescription: Skill A description\ninstructions: |\n  Execute Skill A.\n"
+	if err := os.WriteFile(filepath.Join(toolsDir, "nina-designer.yaml"), []byte(skillA), 0o644); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(toolsDir, "skill-a", "scripts", "run.sh"), []byte("#!/bin/sh\necho ok\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(toolsDir, "nina-designer", "scripts", "run.sh"), []byte("#!/bin/sh\necho ok\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 
@@ -145,7 +145,7 @@ func TestTemplateCatalogGatewayLoadSetsSkillSourceDirFromSiblingAssetsDirectory(
 		t.Fatalf("expected 1 skill, got %d", len(catalog.Skills))
 	}
 
-	expectedDir := filepath.Join(toolsDir, "skill-a")
+	expectedDir := filepath.Join(toolsDir, "nina-designer")
 	if catalog.Skills[0].SourceDir != expectedDir {
 		t.Fatalf("expected SourceDir %q, got %q", expectedDir, catalog.Skills[0].SourceDir)
 	}
