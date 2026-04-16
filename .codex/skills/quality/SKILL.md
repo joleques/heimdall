@@ -8,16 +8,20 @@ description: Regras para TDD, gate de testes antes e depois da implementacao, av
 ## 🎯 Cobertura Minima
 
 - Todo novo artefato exige teste correspondente.
-- `bug`, `melhoria`, `evolucao` e `nova funcionalidade` exigem testes unitarios.
+- `bug` e `implementacao` exigem testes unitarios.
 - Em `bug`, o teste deve reproduzir o problema e impedir recorrencia.
 - Foco principal: testes unitarios. Integracao entra em pontos criticos quando necessario.
 - Testes de API: usar mocks para HTTP/DB quando o contexto pedir isolamento.
 
 ## 🚀 Fluxo Obrigatorio
 
+Estas regras se aplicam quando a demanda envolve implementacao: `bug` ou `implementacao`.
+Para `analise`, nao ha obrigacao de rodar testes antes ou depois, porque nao ha mudanca de implementacao.
+
 ### Antes de implementar
 
 - Execute a suite de testes relevante.
+- Defina e reporte o escopo minimo da baseline (modulo afetado + regressao relacionada).
 - Se a suite falhar antes da mudanca, interrompa o trabalho.
 - Analise a falha e discuta com o usuario antes de seguir.
 
@@ -55,3 +59,13 @@ description: Regras para TDD, gate de testes antes e depois da implementacao, av
 4. Testes executados antes e depois da implementacao.
 5. Qualidade dos testes analisada e reportada.
 6. Documentação sugerida/atualizada.
+
+## Saida estruturada obrigatoria
+
+Ao concluir a revisao, responda com:
+
+- `status`: `PASS` ou `FAIL`
+- `baseline_pre`: comando(s) e resultado antes da implementacao
+- `validacao_pos`: comando(s) e resultado apos a implementacao
+- `achados`: riscos de teste e cobertura
+- `acoes`: correcoes obrigatorias antes de concluir

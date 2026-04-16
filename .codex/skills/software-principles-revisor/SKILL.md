@@ -32,7 +32,7 @@ Pergunte ao usuário:
 2. **Linguagem principal** (Go, Java, Python, etc.)
 
 Colete também o contexto minimo da entrega:
-3. **Tipo da demanda** (`bug`, `melhoria`, `evolucao` ou `nova funcionalidade`)
+3. **Tipo da demanda** (`bug` ou `implementacao`)
 4. **Arquivos alterados**
 5. **Testes executados e resultado**
 6. **Arquivos de teste criados, alterados ou removidos**
@@ -286,6 +286,7 @@ Gere um relatório Markdown com:
 - **Priorize:** Foque em violações que causam acoplamento, fragilidade ou dificuldade de teste.
 - **Balanceamento:** SOLID e KISS/YAGNI podem conflitar — prefira simplicidade quando a complexidade não se justifica.
 - Se a solução ficou "verde" as custas de enfraquecimento ou remocao indevida de testes, registre isso como problema grave de qualidade.
+- Classifique o resultado final da skill como `PASS` quando nao houver achado critico, ou `FAIL` quando houver bloqueio de qualidade de design.
 
 ---
 

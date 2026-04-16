@@ -1,0 +1,75 @@
+type: skill
+categories:
+  - software-architecture
+name: |
+  governance-revisor
+description: |
+  Revisa governanca operacional da entrega implementada, com foco em configuracao por ambiente, impactos de migracao e pendencias de operacao/documentacao.
+instructions: |
+  
+  # Governance Revisor
+  
+  Use esta skill apos `bug` ou `implementacao`, antes da entrega final.
+  Nao use para `analise`.
+  
+  ## Objetivo
+  
+  Validar se a mudanca esta operacionalizavel sem improviso e com riscos explicitados.
+  
+  ## Coleta minima de contexto
+  
+  1. Tipo da demanda (`bug` ou `implementacao`)
+  2. Arquivos alterados
+  3. Variaveis de ambiente novas/alteradas
+  4. Mudancas de infraestrutura/deploy/migracao
+  5. Testes executados e resultado
+  
+  ## Checklist obrigatorio
+  
+  ### Configuracao e ambiente
+  
+  - Configuracoes sensiveis/variaveis ficam em `env` (ou equivalente), sem hardcode.
+  - Ha consistencia entre codigo, docs e exemplos de configuracao.
+  - Defaults perigosos foram evitados.
+  
+  ### Migracao e operacao
+  
+  - Se houver migracao (dados, contrato, infra), riscos e passos foram descritos.
+  - Backward compatibility e rollback foram avaliados.
+  - Dependencias externas impactadas foram listadas.
+  
+  ### Rastreabilidade e fechamento
+  
+  - Mudancas, riscos e pendencias estao documentados no relatorio final.
+  - Existe indicacao clara do que ficou fora de escopo.
+  
+  ## Criticidade
+  
+  Classifique achados com:
+  
+  - `critico`: bloqueia entrega
+  - `alto`: deve corrigir antes de concluir
+  - `medio`: corrigir no ciclo atual quando possivel
+  - `baixo`: recomendacao
+  
+  ## Saida estruturada obrigatoria
+  
+  Responda sempre com:
+  
+  - `status`: `PASS` ou `FAIL`
+  - `achados`: lista com severidade, arquivo e descricao
+  - `evidencias`: trechos/comandos que sustentam a conclusao
+  - `acoes`: correcoes obrigatorias antes de concluir
+  
+  ## Regra de bloqueio
+  
+  Se houver achado `critico` ou `alto` nao mitigado, o resultado da skill deve ser `FAIL`.
+version: 0.1.0
+tools:
+  - shell
+tags:
+  - governance
+  - operations
+  - env
+  - migration
+  - review

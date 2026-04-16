@@ -12,53 +12,78 @@ Idioma: Português (Logs em Inglês).
 * **Cultura de Documentação:** Sempre questione onde documentar a entrega.
 * **Ironia Educativa:** Use o tom sarcástico definido para apontar "gambiarras".
 * **Herança:** Regras em subdiretórios prevalecem sobre esta.
+* **Gate bloqueante:** Entrega com falha em testes, segurança ou arquitetura não pode ser concluída.
 
-## 🧾 Classificação Obrigatória da Demanda
-
-Todo chat deve começar com o **usuário classificando explicitamente** o tipo de trabalho.
+## 🧾 Classificação da Demanda
 
 Tipos aceitos:
 
-* `consulta`
+* `analise`
 * `bug`
-* `melhoria`
-* `evolução`
-* `nova funcionalidade`
+* `implementacao`
 
 Regras:
 
-* Sem classificação explícita do usuário, o agente **não pode** iniciar análise aprofundada, planejamento de implementação ou alteração de arquivos.
+* Se o pedido do usuário for claramente para **ler, entender, revisar, analisar ou explicar** algo, o agente pode tratar automaticamente a demanda como `analise`.
+* Demandas de implementação exigem classificação explícita do usuário como `bug` ou `implementacao`.
+* `implementacao` cobre melhorias, evoluções e novas funcionalidades; subtipo pode ser usado apenas para rastreabilidade.
 * Se a natureza da demanda mudar durante a conversa, o usuário deve **reclassificar** a demanda antes da continuidade.
 * A classificação informada pelo usuário define o protocolo obrigatório de execução do chat.
 
 ## 🧭 Protocolo por Tipo de Trabalho
 
-### `consulta`
+### `analise`
 
 * O agente pode analisar contexto, documentação e código.
 * O agente **não pode alterar** arquivos de código, testes ou configuração de implementação.
-* Se o usuário passar a pedir alteração, correção ou entrega, a demanda deve ser reclassificada para `bug`, `melhoria`, `evolução` ou `nova funcionalidade`.
+* O agente **não precisa rodar testes** antes ou depois quando a demanda for somente `analise`.
+* Se o usuário passar a pedir alteração, correção ou entrega, a demanda deve ser classificada ou reclassificada para `bug` ou `implementacao`.
 
 ### `bug`
 
 * O agente deve identificar a causa provável com base em código, testes e contexto.
-* O agente deve criar ou atualizar **testes unitários** para reproduzir o problema e evitar recorrência.
+* O agente deve criar ou atualizar **testes unitários** para reproduzir o problema e evitar recorrência, validando que o teste falha antes da correção.
 * Corrigir bug sem proteção automatizada é só uma superstição com sintaxe válida.
 
-### `melhoria`
+### `implementacao`
 
-* O agente deve implementar a melhoria com **testes unitários** que garantam o comportamento entregue.
-* A solução deve preservar compatibilidade com o comportamento ainda esperado do sistema.
+* O agente deve detalhar **o que será alterado e onde** antes de implementar.
+* Toda implementação deve incluir **testes unitários** cobrindo o comportamento novo/alterado e os impactos esperados.
+* A solução deve preservar compatibilidade com o comportamento esperado, salvo mudança de regra explicitamente aprovada.
+* O agente deve implementar em passos pequenos e verificáveis.
 
-### `evolução`
+## 🧱 Protocolo Operacional por Fase
 
-* O agente deve detalhar o que será alterado e **onde** será alterado antes de implementar.
-* Toda evolução deve vir acompanhada de **testes unitários** cobrindo o novo comportamento e os impactos esperados.
+### Antes de Executar
 
-### `nova funcionalidade`
+Para `bug` e `implementacao`, a sequência obrigatória é:
 
-* O agente deve descrever claramente o que será entregue antes da implementação.
-* Toda nova funcionalidade deve incluir **testes unitários** para proteger o comportamento criado.
+1. `triagem-demanda`: definir tipo da demanda e escopo.
+2. `plano-implementacao`: montar plano detalhado com o que muda, onde muda, riscos e estratégia de testes.
+3. aprovação explícita do usuário para o plano.
+4. `quality-assurance` pré-implementação: rodar testes relevantes de baseline.
+
+Sem cumprir essa sequência, não há autorização para alterar arquivos de implementação.
+
+### Durante a Execução
+
+* Implementar em lotes pequenos.
+* Não remover, ignorar ou afrouxar teste para "ficar verde".
+* Em `bug`, priorizar fluxo de reprodução por teste antes da correção.
+
+### Depois de Executar (Code Review)
+
+Para `bug` e `implementacao`, executar os revisores na ordem:
+
+1. `quality-assurance`
+2. `arquitetura-revisor`
+3. `software-principles-revisor`
+4. `security-revisor`
+5. `governance-revisor`
+
+### Regra de Bloqueio
+
+Se houver falha crítica em testes, arquitetura, segurança ou governança, a entrega deve permanecer bloqueada até correção ou desvio aceito explicitamente pelo usuário.
 
 ## 📋 Plano Obrigatório Antes de Implementar
 
@@ -72,14 +97,13 @@ Antes de qualquer implementação, o agente deve obrigatoriamente:
 
 Regras do plano:
 
-* O plano é **sempre obrigatório** para `bug`, `melhoria`, `evolução` e `nova funcionalidade`.
-* Para `bug` e `evolução`, o plano deve dizer **o que vai mudar e onde vai mudar**.
-* Para `nova funcionalidade`, o plano pode focar no que será feito, desde que a entrega pretendida fique clara.
+* O plano é **sempre obrigatório** para `bug` e `implementacao`.
+* Para `bug` e `implementacao`, o plano deve dizer **o que vai mudar e onde vai mudar**.
 * Se houver ciclo de análise e revisão entre usuário e agente, o trabalho só segue para implementação após aprovação explícita do usuário.
 
 ## 🧪 Gate Pré-Implementação
 
-Antes de alterar qualquer arquivo de implementação, o agente deve:
+Para `bug` e `implementacao`, antes de alterar qualquer arquivo de implementação, o agente deve:
 
 1. Rodar a suíte de testes relevante do projeto.
 2. Confirmar que a base está íntegra o suficiente para iniciar a mudança.
@@ -138,6 +162,8 @@ Este agente possui habilidades especializadas em:
 * `product-documenter`: Gera documentação canônica de produto otimizada para Base de Conhecimento RAG de Agentes de IA.
 * `bounded-context-analyzer`: Analisa múltiplos serviços de um Bounded Context, extrai Linguagem Ubíqua, agregados e gera o `context.md` canônico.
 * `devcontainer-merger`: Unifica DevContainers de múltiplos serviços em um Root DevContainer — sem imagens inchadas, sem achismo.
+* `security-revisor`: Revisa segurança da entrega (LGPD, validação de entrada, injeção e segredos hardcoded).
+* `governance-revisor`: Revisa governança operacional da entrega (config em env, riscos de migração e pendências).
 
 ## 🔧 Compatibilidade Codex (Projeto Local)
 
@@ -170,6 +196,7 @@ As skills devem ser usadas para operacionalizar o fluxo, principalmente em ativi
 * geração e revisão do plano de implementação;
 * revisão arquitetural e de princípios de software;
 * análise da qualidade dos testes;
+* revisão de segurança e governança operacional;
 * auditoria de alterações ou remoções de testes.
 
 Skills complementam o processo. Elas não substituem as regras obrigatórias deste arquivo.
@@ -177,10 +204,12 @@ Skills complementam o processo. Elas não substituem as regras obrigatórias des
 Fluxo recomendado:
 
 1. `triagem-demanda`
-2. `plano-implementacao`
-3. `quality-assurance`
-4. `arquitetura-revisor`
-5. `software-principles-revisor`
+2. `plano-implementacao` quando houver implementação
+3. `quality-assurance` quando houver implementação
+4. `arquitetura-revisor` após implementação
+5. `software-principles-revisor` após implementação
+6. `security-revisor` após implementação
+7. `governance-revisor` após implementação
 
 ## 🔍 Controle de Qualidade
 
@@ -190,7 +219,9 @@ Se houve implementação, o agente deve obrigatoriamente:
 * relatar o resultado dos testes;
 * avaliar a qualidade dos testes criados ou alterados;
 * verificar se a solução respeita o pedido original do usuário;
-* confirmar que a solução não consistiu em remover teste apenas para fazer a suíte passar.
+* confirmar que a solução não consistiu em remover teste apenas para fazer a suíte passar;
+* validar requisitos mínimos de segurança (LGPD, injeção, segredos);
+* validar governança operacional (configuração em env, riscos de migração e pendências).
 
 Remoção de teste:
 
@@ -204,8 +235,10 @@ Remoção de teste:
 
 1. Execute a skill `arquitetura-revisor` no código implementado
 2. Execute a skill `software-principles-revisor` no código implementado
-3. Corrija violações identificadas antes de finalizar
-4. Execute os testes relevantes da entrega
-5. Analise a qualidade dos testes criados ou alterados
-6. Confirme que nenhum teste foi removido apenas para viabilizar suíte verde
-7. Documente no relatório final qualquer desvio aceito conscientemente
+3. Execute a skill `security-revisor` no código implementado
+4. Execute a skill `governance-revisor` no código implementado
+5. Corrija violações identificadas antes de finalizar
+6. Execute os testes relevantes da entrega
+7. Analise a qualidade dos testes criados ou alterados
+8. Confirme que nenhum teste foi removido apenas para viabilizar suíte verde
+9. Documente no relatório final qualquer desvio aceito conscientemente

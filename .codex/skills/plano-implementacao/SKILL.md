@@ -1,11 +1,12 @@
 ---
 name: plano-implementacao
-description: Gera o plano obrigatorio antes de implementar, detalhando o que vai mudar e onde vai mudar para bug e evolucao, e bloqueia a execucao ate aprovacao explicita do usuario.
+description: Gera o plano obrigatorio antes de implementar, detalhando o que vai mudar e onde vai mudar para bug e implementacao, e bloqueia a execucao ate aprovacao explicita do usuario.
 ---
 
 # Plano de Implementacao
 
-Use esta skill em toda demanda classificada como `bug`, `melhoria`, `evolucao` ou `nova funcionalidade`.
+Use esta skill em toda demanda classificada como `bug` ou `implementacao`.
+Nao use esta skill para `analise`.
 
 ## Objetivo
 
@@ -26,24 +27,23 @@ Criar um plano claro, verificavel e aprovavel pelo usuario antes de qualquer imp
 - Informar quais testes unitarios vao reproduzir o problema e impedir recorrencia.
 - Informar riscos de regressao ou pontos de impacto.
 
-### Para `melhoria`
+### Para `implementacao`
 
-- Descrever o comportamento atual e a melhoria pretendida.
-- Informar o que vai mudar.
-- Informar testes unitarios que vao proteger o comportamento entregue.
-
-### Para `evolucao`
-
-- Descrever o objetivo da evolucao.
+- Descrever o objetivo da implementacao.
 - Informar o que vai mudar e onde vai mudar.
 - Informar impactos esperados em codigo, contratos ou fluxos.
-- Informar testes unitarios que vao proteger o novo comportamento.
+- Informar testes unitarios que vao proteger o comportamento novo/alterado.
+- Se existir, registrar o subtipo de rastreio (`melhoria`, `evolucao` ou `nova funcionalidade`) sem alterar o protocolo.
 
-### Para `nova funcionalidade`
+## Formato minimo obrigatorio do plano
 
-- Descrever o que sera entregue.
-- Informar os componentes principais que serao criados ou adaptados, quando isso ja for conhecido.
-- Informar testes unitarios que vao validar a funcionalidade.
+O plano deve conter estes campos:
+
+- `o_que_muda`
+- `onde_muda` (arquivos/modulos esperados)
+- `riscos`
+- `estrategia_teste_pre` (baseline)
+- `estrategia_teste_pos` (validacao final)
 
 ## Gate de aprovacao
 

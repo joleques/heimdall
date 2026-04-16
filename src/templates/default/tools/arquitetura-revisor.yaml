@@ -31,7 +31,7 @@ instructions: |
   2. **Linguagem principal** (Go, Java, Python, etc.)
   
   Colete também o contexto minimo da entrega:
-  3. **Tipo da demanda** (`bug`, `melhoria`, `evolucao` ou `nova funcionalidade`)
+  3. **Tipo da demanda** (`bug` ou `implementacao`)
   4. **Arquivos alterados**
   5. **Testes executados e resultado**
   6. **Arquivos de teste criados, alterados ou removidos**
@@ -205,6 +205,7 @@ instructions: |
   - Alguns problemas podem requerer análise de contexto adicional
   - Priorize problemas que violam regras fundamentais (dependências)
   - Se a solução arquitetural vier sem proteção automatizada ou com remoção suspeita de testes, registre isso mesmo que a estrutura de camadas esteja aceitável.
+  - Classifique o resultado final da skill como `PASS` quando nao houver achado critico, ou `FAIL` quando houver bloqueio arquitetural.
   
   
   ## 📚 Referências

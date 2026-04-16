@@ -4,7 +4,7 @@ categories:
 name: |
   triagem-demanda
 description: |
-  Valida a classificacao obrigatoria da demanda no inicio do chat, bloqueia continuidade sem tipo explicito e aplica o protocolo correto para consulta, bug, melhoria, evolucao ou nova funcionalidade.
+  Valida a classificacao da demanda, trata pedidos claramente investigativos como analise e aplica o protocolo correto para analise, bug ou implementacao.
 instructions: |
   
   # Triagem de Demanda
@@ -17,31 +17,33 @@ instructions: |
   
   ## Tipos aceitos
   
-  - `consulta`
+  - `analise`
   - `bug`
-  - `melhoria`
-  - `evolucao`
-  - `nova funcionalidade`
+  - `implementacao`
   
   ## Regras obrigatorias
   
-  - A classificacao deve ser informada explicitamente pelo usuario.
-  - Sem classificacao, o agente deve interromper o fluxo e solicitar a classificacao.
+  - Se o pedido for claramente para ler, entender, revisar, analisar ou explicar algo, o agente pode classifica-lo automaticamente como `analise`.
+  - Demandas de implementacao exigem classificacao explicita do usuario.
+  - `implementacao` cobre melhoria, evolucao e nova funcionalidade; subtipo pode ser usado apenas para rastreabilidade.
   - Se a demanda mudar de natureza no meio da conversa, o agente deve solicitar reclassificacao antes de seguir.
-  - Em `consulta`, o agente pode analisar documentacao e codigo, mas nao pode alterar arquivos de implementacao, testes ou configuracao.
-  - Em `bug`, `melhoria`, `evolucao` e `nova funcionalidade`, o agente deve seguir para plano obrigatorio antes de implementar.
+  - Em `analise`, o agente pode analisar documentacao e codigo, mas nao pode alterar arquivos de implementacao, testes ou configuracao.
+  - Em `analise`, o agente nao precisa rodar testes antes nem depois, porque nao ha implementacao.
+  - Em `bug` e `implementacao`, o agente deve seguir para plano obrigatorio antes de implementar.
   
   ## Fluxo
   
-  1. Verifique se o usuario informou um dos tipos aceitos.
-  2. Se nao informou, solicite a classificacao e nao avance.
-  3. Se informou `consulta`, limite a execucao a analise e resposta.
-  4. Se informou `bug`, `melhoria`, `evolucao` ou `nova funcionalidade`, encaminhe para a skill `plano-implementacao`.
-  5. Se o pedido atual contradiz a classificacao anterior, interrompa e solicite reclassificacao.
+  1. Verifique se o pedido ja e claramente de leitura, entendimento, revisao, analise ou explicacao.
+  2. Se sim, trate a demanda como `analise`.
+  3. Se nao for claramente analitica, verifique se o usuario informou um dos tipos de implementacao aceitos (`bug` ou `implementacao`).
+  4. Se nao informou e houver intencao de mudanca, solicite a classificacao e nao avance.
+  5. Se informou `analise`, limite a execucao a analise e resposta.
+  6. Se informou `bug` ou `implementacao`, encaminhe para a skill `plano-implementacao`.
+  7. Se o pedido atual contradiz a classificacao anterior, interrompa e solicite reclassificacao.
   
   ## Sinais de alerta
   
-  - Pedido classificado como `consulta` contendo verbos como "implementar", "alterar", "corrigir", "criar", "remover" ou "ajustar".
+  - Pedido tratado como `analise` contendo verbos como "implementar", "alterar", "corrigir", "criar", "remover" ou "ajustar".
   - Pedido classificado como `bug` sem expectativa de reproduzir o problema via teste.
   - Pedido de implementacao sem plano aprovado pelo usuario.
   
@@ -49,10 +51,19 @@ instructions: |
   
   Ao final da triagem, o chat deve estar em um destes estados:
   
-  - demanda bloqueada aguardando classificacao;
+  - demanda bloqueada aguardando classificacao de implementacao;
   - demanda bloqueada aguardando reclassificacao;
-  - demanda validada como `consulta`;
+  - demanda validada como `analise`;
   - demanda validada para seguir ao plano de implementacao.
+  
+  ## Saida estruturada obrigatoria
+  
+  Ao concluir a triagem, responda sempre com:
+  
+  - `tipo`: `analise`, `bug` ou `implementacao`
+  - `escopo`: resumo curto do problema/objetivo
+  - `criterios_aceite`: lista objetiva do que define entrega correta
+  - `bloqueios`: lista de pendencias para seguir (ou `nenhum`)
 version: 0.1.0
 tools:
   - shell
